@@ -226,6 +226,30 @@ a {
   color: var(--muted);
 }
 
+.values-list {
+  list-style: none;
+  display: grid;
+  gap: 0.65rem;
+  color: var(--muted);
+}
+
+.values-list li {
+  padding-left: 1.25rem;
+  position: relative;
+}
+
+.values-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.values-list strong {
+  color: var(--text);
+}
+
 .cta {
   display: flex;
   flex-wrap: wrap;
