@@ -310,6 +310,10 @@ a {
   animation: impactReveal 0.35s ease;
 }
 
+.impact-card.is-open .impact-label {
+  opacity: 0;
+}
+
 @keyframes impactReveal {
   from {
     opacity: 0;
