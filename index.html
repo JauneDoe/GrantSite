@@ -196,6 +196,13 @@
           >
             <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80" alt="Volunteers working together at a community table." />
             <div class="impact-label">Community support in action</div>
+            <div class="impact-overlay" aria-hidden="true">
+              <h3>Neighborhood resource drives</h3>
+              <p>
+                Community-led events delivered supplies, referrals, and on-the-spot
+                support to families facing urgent needs.
+              </p>
+            </div>
           </button>
           <button
             class="impact-card"
@@ -205,6 +212,13 @@
           >
             <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80" alt="Community leaders in a meeting discussing plans." />
             <div class="impact-label">Trusted local partners</div>
+            <div class="impact-overlay" aria-hidden="true">
+              <h3>Partnerships with local leaders</h3>
+              <p>
+                We collaborate with neighborhood partners to coordinate services,
+                amplify local priorities, and sustain programs year-round.
+              </p>
+            </div>
           </button>
           <button
             class="impact-card"
@@ -214,6 +228,13 @@
           >
             <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80" alt="A group of young people collaborating around a table." />
             <div class="impact-label">Families and youth programs</div>
+            <div class="impact-overlay" aria-hidden="true">
+              <h3>Youth and family engagement</h3>
+              <p>
+                Hands-on programs create safe, welcoming spaces where families and
+                youth can learn, connect, and thrive.
+              </p>
+            </div>
           </button>
           <button
             class="impact-card"
@@ -223,6 +244,13 @@
           >
             <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=900&q=80" alt="People collaborating with hands stacked together." />
             <div class="impact-label">Capacity building</div>
+            <div class="impact-overlay" aria-hidden="true">
+              <h3>Sustained community investment</h3>
+              <p>
+                Capacity-building initiatives support long-term growth with training,
+                tools, and shared learning across partners.
+              </p>
+            </div>
           </button>
         </div>
       </section>
@@ -287,41 +315,26 @@
         </div>
       </section>
 
-      <div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-modal="true">
-        <div class="lightbox-backdrop" data-close="true"></div>
-        <div class="lightbox-card" role="document">
-          <button class="lightbox-close" type="button" data-close="true">✕</button>
-          <h3 id="lightbox-title">Title</h3>
-          <p id="lightbox-description">Description</p>
-        </div>
-      </div>
     </main>
 
     <script>
-      const lightbox = document.getElementById("lightbox");
-      const lightboxTitle = document.getElementById("lightbox-title");
-      const lightboxDescription = document.getElementById("lightbox-description");
-
       document.querySelectorAll(".impact-card").forEach((card) => {
         card.addEventListener("click", () => {
-          lightboxTitle.textContent = card.dataset.title || "";
-          lightboxDescription.textContent = card.dataset.description || "";
-          lightbox.classList.add("is-open");
-          lightbox.setAttribute("aria-hidden", "false");
+          const isOpen = card.classList.contains("is-open");
+          document
+            .querySelectorAll(".impact-card.is-open")
+            .forEach((openCard) => openCard.classList.remove("is-open"));
+          if (!isOpen) {
+            card.classList.add("is-open");
+          }
         });
       });
 
-      lightbox.addEventListener("click", (event) => {
-        if (event.target.dataset.close === "true") {
-          lightbox.classList.remove("is-open");
-          lightbox.setAttribute("aria-hidden", "true");
-        }
-      });
-
       document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && lightbox.classList.contains("is-open")) {
-          lightbox.classList.remove("is-open");
-          lightbox.setAttribute("aria-hidden", "true");
+        if (event.key === "Escape") {
+          document
+            .querySelectorAll(".impact-card.is-open")
+            .forEach((openCard) => openCard.classList.remove("is-open"));
         }
       });
     </script>
