@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <script>
+      if (sessionStorage.getItem("ownerAccess") !== "granted") {
+        window.location.href = "login.html";
+      }
+    </script>
     <header class="site-header">
       <nav class="nav">
         <span class="logo">

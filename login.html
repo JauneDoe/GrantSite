@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Owner Access</title>
+    <meta name="description" content="Private owner access for site updates." />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav">
+        <a class="logo" href="index.html">
+          <span class="logo-mark">CGI</span>
+          <span class="logo-text">Community Grants Initiative</span>
+        </a>
+        <div class="nav-actions">
+          <a class="button button-ghost" href="index.html">Back to Home</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="section">
+      <div class="section-heading">
+        <h2>Owner access</h2>
+        <p>Sign in to update site content. This is temporary and will be upgraded later.</p>
+      </div>
+
+      <form class="card contact-form" id="login-form">
+        <div class="form-field">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" required />
+        </div>
+        <div class="form-field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+        </div>
+        <button class="button button-primary" type="submit">Sign in</button>
+        <p id="login-error" class="login-error" role="alert" aria-live="polite"></p>
+      </form>
+    </main>
+
+    <script>
+      const OWNER_USERNAME = "Owner";
+      const OWNER_PASSWORD = "Easyas123";
+
+      const form = document.getElementById("login-form");
+      const error = document.getElementById("login-error");
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const username = form.username.value.trim();
+        const password = form.password.value.trim();
+
+        if (username === OWNER_USERNAME && password === OWNER_PASSWORD) {
+          sessionStorage.setItem("ownerAccess", "granted");
+          window.location.href = "owner.html";
+          return;
+        }
+
+        error.textContent = "Incorrect username or password.";
+      });
+    </script>
+  </body>
+</html>

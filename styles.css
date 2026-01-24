@@ -395,6 +395,11 @@ a {
   flex-wrap: wrap;
 }
 
+.login-error {
+  color: #b23b2a;
+  font-weight: 600;
+}
+
 .form-field {
   display: flex;
   flex-direction: column;
