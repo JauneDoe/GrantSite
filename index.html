@@ -187,12 +187,43 @@
             what local partners say they need most.
           </p>
         </div>
-        <div class="card">
-          <ul class="values-list">
-            <li>Served underserved populations.</li>
-            <li>Built sustainable programs.</li>
-            <li>Collaborated with local partners.</li>
-          </ul>
+        <div class="impact-grid">
+          <button
+            class="impact-card"
+            type="button"
+            data-title="Neighborhood resource drives"
+            data-description="Community-led events delivered supplies, referrals, and on-the-spot support to families facing urgent needs."
+          >
+            <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80" alt="Volunteers working together at a community table." />
+            <div class="impact-label">Community support in action</div>
+          </button>
+          <button
+            class="impact-card"
+            type="button"
+            data-title="Partnerships with local leaders"
+            data-description="We collaborate with neighborhood partners to coordinate services, amplify local priorities, and sustain programs year-round."
+          >
+            <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80" alt="Community leaders in a meeting discussing plans." />
+            <div class="impact-label">Trusted local partners</div>
+          </button>
+          <button
+            class="impact-card"
+            type="button"
+            data-title="Youth and family engagement"
+            data-description="Hands-on programs create safe, welcoming spaces where families and youth can learn, connect, and thrive."
+          >
+            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80" alt="A group of young people collaborating around a table." />
+            <div class="impact-label">Families and youth programs</div>
+          </button>
+          <button
+            class="impact-card"
+            type="button"
+            data-title="Sustained community investment"
+            data-description="Capacity-building initiatives support long-term growth with training, tools, and shared learning across partners."
+          >
+            <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=900&q=80" alt="People collaborating with hands stacked together." />
+            <div class="impact-label">Capacity building</div>
+          </button>
         </div>
       </section>
 
@@ -251,11 +282,49 @@
               Interested in collaborating or funding a shared initiative? Let’s
               connect.
             </p>
-            <a class="button button-ghost" href="#cta">Partner With Us</a>
+            <a class="button button-ghost" href="#cta">Support Our Mission</a>
           </div>
         </div>
       </section>
+
+      <div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="lightbox-backdrop" data-close="true"></div>
+        <div class="lightbox-card" role="document">
+          <button class="lightbox-close" type="button" data-close="true">✕</button>
+          <h3 id="lightbox-title">Title</h3>
+          <p id="lightbox-description">Description</p>
+        </div>
+      </div>
     </main>
+
+    <script>
+      const lightbox = document.getElementById("lightbox");
+      const lightboxTitle = document.getElementById("lightbox-title");
+      const lightboxDescription = document.getElementById("lightbox-description");
+
+      document.querySelectorAll(".impact-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          lightboxTitle.textContent = card.dataset.title || "";
+          lightboxDescription.textContent = card.dataset.description || "";
+          lightbox.classList.add("is-open");
+          lightbox.setAttribute("aria-hidden", "false");
+        });
+      });
+
+      lightbox.addEventListener("click", (event) => {
+        if (event.target.dataset.close === "true") {
+          lightbox.classList.remove("is-open");
+          lightbox.setAttribute("aria-hidden", "true");
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && lightbox.classList.contains("is-open")) {
+          lightbox.classList.remove("is-open");
+          lightbox.setAttribute("aria-hidden", "true");
+        }
+      });
+    </script>
 
     <footer class="site-footer">
       <p>© 2026 Community Grants Initiative. All rights reserved.</p>
