@@ -31,7 +31,9 @@
         <aside class="dashboard-sidebar">
             <nav class="dashboard-nav">
                 <a class="dash-link active" onclick="switchClientTab('dashboard')">My Dashboard</a>
-                <a class="dash-link" onclick="switchClientTab('messages')">Message Center</a>
+                <a class="dash-link" onclick="switchClientTab('messages')" id="nav-msgs">
+                    Message Center
+                </a>
             </nav>
         </aside>
 
@@ -128,9 +130,10 @@
             <p>Direct communication with your Grant Consultant.</p>
         </div>
         <div class="card" style="height: 60vh; padding: 0; display: flex; flex-direction: column;">
-             <div id="client-chat-window" style="flex: 1; padding: 1.5rem; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; gap: 1rem;">
+             <div id="client-chat-window" style="flex: 1; padding: 1.5rem 1.5rem 0.5rem; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; gap: 1rem;">
                  <!-- Messages -->
              </div>
+             <div id="client-typing-indicator" class="typing-indicator">Consultant is typing...</div>
              <div style="padding: 1rem; border-top: 1px solid var(--border); background: #fff; display: flex; gap: 0.5rem; align-items: center;">
                  <button class="button button-ghost" style="padding: 0.5rem 0.75rem;" onclick="document.getElementById('client-file-input').click()" title="Upload File">
                     📎
@@ -160,7 +163,23 @@
             if(tabName === 'dashboard') navLinks[0].classList.add('active');
             if(tabName === 'messages') {
                 navLinks[1].classList.add('active');
+                
+                // Mark as read
+                const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
+                const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
+                if(allMsgs[clientName]) {
+                    let changed = false;
+                    allMsgs[clientName].forEach(m => {
+                        if(m.sender === 'Admin' && !m.read) {
+                            m.read = true;
+                            changed = true;
+                        }
+                    });
+                    if(changed) localStorage.setItem("siteMessages", JSON.stringify(allMsgs));
+                }
+
                 renderClientChat();
+                updateClientBadge(); // Update UI
             }
         }
 
@@ -189,6 +208,79 @@
             window.scrollTop = window.scrollHeight;
         }
 
+        function updateClientBadge() {
+             const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
+             const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
+             const msgs = allMsgs[clientName] || [];
+             const unread = msgs.filter(m => m.sender === 'Admin' && !m.read).length;
+             
+             const link = document.getElementById('nav-msgs');
+             // Preserve text, update badge
+             link.innerHTML = `Message Center ${unread > 0 ? `<span class="badge">${unread}</span>` : ''}`;
+        }
+        
+        // Typing Logic
+        let typingTimeout;
+        const clientInput = document.getElementById('client-chat-input');
+        
+        clientInput.addEventListener('input', () => {
+             const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
+             localStorage.setItem('typing_' + clientName + '_client', 'true');
+             clearTimeout(typingTimeout);
+             typingTimeout = setTimeout(() => {
+                 localStorage.setItem('typing_' + clientName + '_client', 'false');
+             }, 1500);
+        });
+        
+        // Listen for admin typing & new messages
+        window.addEventListener('storage', (e) => {
+             const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
+             
+             if(e.key === 'siteMessages') {
+                 // If we are currently looking at messages, refresh them. 
+                 // If not, update badge.
+                 const isChatOpen = document.getElementById('view-messages').classList.contains('active');
+                 if(isChatOpen) {
+                     // Since we are open, we should technically mark them as read immediately or let next click do it.
+                     // For smoother UX, let's just render. User will likely click/type effectively clearing it.
+                     // Or re-run switchClientTab('messages') logic?
+                     renderClientChat();
+                 } else {
+                     updateClientBadge(); // Increment badge
+                 }
+             }
+
+             if (e.key === 'typing_' + clientName + '_admin') {
+                const indicator = document.getElementById('client-typing-indicator');
+                if(e.newValue === 'true') indicator.classList.add('active');
+                else indicator.classList.remove('active');
+             }
+        });
+
+        // Polling (for single browser demo)
+        setInterval(() => {
+             const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
+             if(localStorage.getItem('typing_' + clientName + '_admin') === 'true') {
+                 document.getElementById('client-typing-indicator').classList.add('active');
+             } else {
+                 document.getElementById('client-typing-indicator').classList.remove('active');
+             }
+             
+             // Check badges frequently
+             updateClientBadge();
+             
+             // Reload chat if open and changed
+             if(document.getElementById('view-messages').classList.contains('active')) {
+                  const currentMsgs = localStorage.getItem("siteMessages");
+                  if (currentMsgs !== window.lastKnownMsgs) {
+                     window.lastKnownMsgs = currentMsgs;
+                     // Auto-mark read if active? 
+                     // Let's keep it simple: just render.
+                     renderClientChat();
+                 }
+             }
+        }, 1000);
+
         function sendClientMessage() {
             const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
             const input = document.getElementById('client-chat-input');
@@ -197,6 +289,7 @@
             
             saveMessage(clientName, text);
             input.value = '';
+            localStorage.setItem('typing_' + clientName + '_client', 'false');
         }
 
         function handleClientFileUpload(input) {
@@ -215,7 +308,7 @@
             if(!allMsgs[clientName]) allMsgs[clientName] = [];
             
             const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            allMsgs[clientName].push({ sender: 'Client', text: text, time: now });
+            allMsgs[clientName].push({ sender: 'Client', text: text, time: now, read: false }); // Unread by admin
             
             localStorage.setItem("siteMessages", JSON.stringify(allMsgs));
             renderClientChat();

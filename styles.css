@@ -709,3 +709,35 @@ dialog::backdrop {
   text-align: right;
 }
 
+
+/* Notification Badge */
+.badge {
+  background: #dc2626;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  margin-left: auto; /* Push to right in flex container */
+  min-width: 1.2em;
+  text-align: center;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-style: italic;
+  padding: 0 1rem 0.5rem 1rem;
+  display: none;
+}
+.typing-indicator.active {
+    display: block;
+    animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+}
+

@@ -105,9 +105,10 @@
                          <div id="chat-header" style="padding: 1rem; border-bottom: 1px solid var(--border); font-weight: 600; background: #fff;">
                              Select a client to chat
                          </div>
-                         <div id="chat-window" style="flex: 1; padding: 1.5rem; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; gap: 1rem;">
+                         <div id="chat-window" style="flex: 1; padding: 1.5rem 1.5rem 0.5rem; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; gap: 1rem;">
                              <!-- Messages -->
                          </div>
+                         <div id="admin-typing-indicator" class="typing-indicator">Client is typing...</div>
                          <div style="padding: 1rem; border-top: 1px solid var(--border); background: #fff; display: flex; gap: 0.5rem; align-items: center;">
                              <button id="admin-file-btn" class="button button-ghost" style="padding: 0.5rem 0.75rem;" disabled onclick="document.getElementById('admin-file-input').click()" title="Upload File">
                                 📎
@@ -171,6 +172,8 @@
               list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">No clients found.</div>`;
               return;
           }
+
+          const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
           
           clients.forEach(client => {
               const div = document.createElement('div');
@@ -178,7 +181,18 @@
               div.style.cursor = 'pointer';
               div.style.borderBottom = '1px solid var(--border)';
               div.style.fontSize = '0.9rem';
+              div.style.display = 'flex';
+              div.style.justifyContent = 'space-between';
+              div.style.alignItems = 'center';
               div.textContent = client;
+              
+              // Unread Badge
+              const clientMsgs = allMsgs[client] || [];
+              const unreadCount = clientMsgs.filter(m => m.sender === 'Client' && !m.read).length;
+              if(unreadCount > 0) {
+                  div.innerHTML += `<span class="badge">${unreadCount}</span>`;
+              }
+
               div.onclick = () => openAdminChat(client);
               
               if(activeChatClient === client) {
@@ -199,7 +213,17 @@
           document.getElementById('admin-chat-input').disabled = false;
           document.getElementById('admin-chat-send').disabled = false;
           document.getElementById('admin-file-btn').disabled = false;
-          loadMessageClients(); // Re-render list to show active state
+          
+          // Mark as read
+          const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
+          if(allMsgs[clientName]) {
+             allMsgs[clientName].forEach(m => {
+                 if(m.sender === 'Client') m.read = true;
+             });
+             localStorage.setItem("siteMessages", JSON.stringify(allMsgs));
+          }
+
+          loadMessageClients(); // Re-render list to clear badge
           renderChatMessages();
       }
 
@@ -226,6 +250,55 @@
            window.scrollTop = window.scrollHeight;
       }
 
+      // Typing Logic
+      let typingTimeout;
+      const adminInput = document.getElementById('admin-chat-input');
+      
+      adminInput.addEventListener('input', () => {
+          if(!activeChatClient) return;
+          localStorage.setItem('typing_' + activeChatClient + '_admin', 'true');
+          clearTimeout(typingTimeout);
+          typingTimeout = setTimeout(() => {
+             localStorage.setItem('typing_' + activeChatClient + '_admin', 'false');
+          }, 1500);
+      });
+      
+      // Listen for client typing
+      window.addEventListener('storage', (e) => {
+          if(!activeChatClient) return;
+          
+          // Refresh messages if storage changed (sync chat)
+          if(e.key === 'siteMessages') {
+             // Only update if we're not the one who wrote it (avoid double render glitch, though renderChat is safe)
+             renderChatMessages();
+             loadMessageClients(); // Update badges for others
+          }
+
+          // Typing indicator
+          if (e.key === 'typing_' + activeChatClient + '_client') {
+              const indicator = document.getElementById('admin-typing-indicator');
+              if(e.newValue === 'true') indicator.classList.add('active');
+              else indicator.classList.remove('active');
+          }
+      });
+      
+      // Polling for same-tab demo purposes 
+      setInterval(() => {
+         if(!activeChatClient) return;
+         if(localStorage.getItem('typing_' + activeChatClient + '_client') === 'true') {
+             document.getElementById('admin-typing-indicator').classList.add('active');
+         } else {
+             document.getElementById('admin-typing-indicator').classList.remove('active');
+         }
+         // Auto-reload badges/messages
+         const currentMsgs = localStorage.getItem("siteMessages");
+         if (currentMsgs !== window.lastKnownMsgs) {
+             window.lastKnownMsgs = currentMsgs;
+             loadMessageClients();
+             renderChatMessages();
+         }
+      }, 1000);
+
       function sendAdminMessage() {
           if(!activeChatClient) return;
           const input = document.getElementById('admin-chat-input');
@@ -234,6 +307,7 @@
           
           saveAdminMsg(text);
           input.value = '';
+          localStorage.setItem('typing_' + activeChatClient + '_admin', 'false'); // Stop typing immediately
       }
 
       function handleAdminFileUpload(input) {
@@ -251,7 +325,7 @@
           if(!allMsgs[activeChatClient]) allMsgs[activeChatClient] = [];
           
           const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          allMsgs[activeChatClient].push({ sender: 'Admin', text: text, time: now });
+          allMsgs[activeChatClient].push({ sender: 'Admin', text: text, time: now, read: false }); // Sent as unread
           
           localStorage.setItem("siteMessages", JSON.stringify(allMsgs));
           renderChatMessages();
