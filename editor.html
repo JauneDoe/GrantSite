@@ -45,15 +45,6 @@
                         <input id="logoText" data-edit-key="logoText" value="Community Grants Initiative" />
                     </div>
                 </div>
-                <h4 style="margin-top: 1rem; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--muted);">Navigation Links</h4>
-                <div class="owner-grid">
-                  <div class="form-field"><label>About</label><input data-edit-key="navAbout" value="About Us" /></div>
-                  <div class="form-field"><label>Who We Serve</label><input data-edit-key="navWho" value="Who We Serve" /></div>
-                  <div class="form-field"><label>Our Work</label><input data-edit-key="navWork" value="Our Work" /></div>
-                  <div class="form-field"><label>Impact</label><input data-edit-key="navImpact" value="Impact" /></div>
-                  <div class="form-field"><label>Contact</label><input data-edit-key="navContact" value="Contact" /></div>
-                  <div class="form-field"><label>Nav Button</label><input data-edit-key="navCtaText" value="Support Our Mission" /></div>
-                </div>
             </details>
 
             <!-- FUNDRAISING -->
@@ -84,36 +75,22 @@
                 <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Theme & Colors</summary>
                 <div class="owner-grid">
                   <div class="form-field">
-                    <label for="themeBg">Background</label>
-                    <input type="color" id="themeBg" data-edit-key="themeBg" value="#fffaf6" style="height: 40px; width: 100%; padding: 0;" />
+                    <label for="themeBg">Background Color</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                      <input type="color" id="themeBg" data-edit-key="themeBg" value="#fffaf6" style="height: 40px; width: 60px; padding: 0;" />
+                    </div>
                   </div>
                   <div class="form-field">
-                     <label for="themePrimary">Primary</label>
-                     <input type="color" id="themePrimary" data-edit-key="themePrimary" value="#d97706" style="height: 40px; width: 100%; padding: 0;" />
-                  </div>
-                  <div class="form-field">
-                    <label for="themeSurface">Surface</label>
-                    <input type="color" data-edit-key="themeSurface" value="#fffaf6" style="height: 40px; width: 100%; padding: 0;" />
-                  </div>
-                  <div class="form-field">
-                    <label for="themeText">Text</label>
-                    <input type="color" data-edit-key="themeText" value="#3b2f2f" style="height: 40px; width: 100%; padding: 0;" />
-                  </div>
-                  <div class="form-field">
-                    <label for="themeAccent">Accent</label>
-                    <input type="color" data-edit-key="themeAccent" value="#f2b66d" style="height: 40px; width: 100%; padding: 0;" />
+                     <label for="themePrimary">Primary Color</label>
+                     <input type="color" id="themePrimary" data-edit-key="themePrimary" value="#d97706" style="height: 40px; width: 60px; padding: 0;" />
                   </div>
                 </div>
             </details>
             
-            <!-- HERO SECTION -->
-            <details style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-                <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Hero Section</summary>
+            <!-- HERO TEXT -->
+            <details style="margin-bottom: 1rem;">
+                <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Hero Section Text</summary>
                  <div class="owner-grid">
-                      <div class="form-field full-width">
-                        <label>Eyebrow Text</label>
-                        <input data-edit-key="heroEyebrow" value="Building opportunity together" />
-                      </div>
                       <div class="form-field full-width">
                         <label for="heroTitle">Main Headline</label>
                         <textarea id="heroTitle" rows="2" data-edit-key="heroTitle">We connect resources to the people and places that need them most.</textarea>
@@ -122,174 +99,7 @@
                         <label for="heroSubtitle">Subtitle</label>
                         <textarea id="heroSubtitle" rows="2" data-edit-key="heroSubtitle">Our mission is... so every community can thrive.</textarea>
                       </div>
-                       <div class="form-field">
-                        <label>Primary Button Text</label>
-                        <input data-edit-key="heroPrimaryText" value="Support Our Mission" />
-                      </div>
-                      <div class="form-field">
-                        <label>Primary Button Link</label>
-                        <input data-edit-key="heroPrimaryLink" value="#cta" />
-                      </div>
-                      <div class="form-field">
-                        <label>Secondary Button Text</label>
-                        <input data-edit-key="heroSecondaryText" value="Learn More" />
-                      </div>
-                      <div class="form-field">
-                        <label>Secondary Button Link</label>
-                        <input data-edit-key="heroSecondaryLink" value="#what" />
-                      </div>
                  </div>
-
-                 <h4 style="margin-top: 1rem; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--muted);">Hero Card (Mission Statement)</h4>
-                 <div class="owner-grid">
-                    <div class="form-field"><label>Card Title</label><input data-edit-key="heroCardTitle" value="Short mission statement" /></div>
-                    <div class="form-field full-width"><label>Card Body</label><textarea rows="2" data-edit-key="heroCardBody">We champion equitable access to funding...</textarea></div>
-                    <div class="form-field"><label>Stat 1 Number</label><input data-edit-key="statOneNumber" value="50+" /></div>
-                    <div class="form-field"><label>Stat 1 Label</label><input data-edit-key="statOneLabel" value="partners engaged" /></div>
-                    <div class="form-field"><label>Stat 2 Number</label><input data-edit-key="statTwoNumber" value="$1M+" /></div>
-                    <div class="form-field"><label>Stat 2 Label</label><input data-edit-key="statTwoLabel" value="grant goals" /></div>
-                 </div>
-            </details>
-
-            <!-- ABOUT US -->
-            <details style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-                <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">About Us</summary>
-                <div class="owner-grid">
-                    <div class="form-field"><label>Section Title</label><input data-edit-key="aboutTitle" value="About us" /></div>
-                    <div class="form-field full-width"><label>Intro Text</label><textarea rows="2" data-edit-key="aboutIntro">We are a community-centered initiative...</textarea></div>
-                    <div class="form-field full-width"><label>Story Title</label><input data-edit-key="aboutStoryTitle" value="Our story" /></div>
-                    <div class="form-field full-width"><label>Story Text</label><textarea rows="2" data-edit-key="aboutStoryBody"></textarea></div>
-                    
-                    <div class="form-field full-width"><label>Values Title</label><input data-edit-key="aboutValuesTitle" value="Our values" /></div>
-                    <!-- Values condensed -->
-                    <div class="form-field"><label>Value 1 Label</label><input data-edit-key="valueOneLabel" value="Equity:" /></div>
-                    <div class="form-field"><label>Value 1 Text</label><input data-edit-key="valueOneBody" value="We focus resources..." /></div>
-                    <div class="form-field"><label>Value 2 Label</label><input data-edit-key="valueTwoLabel" value="Access:" /></div>
-                    <div class="form-field"><label>Value 2 Text</label><input data-edit-key="valueTwoBody" value="We remove barriers..." /></div>
-                    <div class="form-field"><label>Value 3 Label</label><input data-edit-key="valueThreeLabel" value="Empowerment:" /></div>
-                    <div class="form-field"><label>Value 3 Text</label><input data-edit-key="valueThreeBody" value="We elevate..." /></div>
-                    <div class="form-field"><label>Value 4 Label</label><input data-edit-key="valueFourLabel" value="Sustainability:" /></div>
-                    <div class="form-field"><label>Value 4 Text</label><input data-edit-key="valueFourBody" value="We invest..." /></div>
-                </div>
-            </details>
-
-            <!-- WHO WE SERVE -->
-            <details style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-                <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Who We Serve</summary>
-                <div class="owner-grid">
-                    <div class="form-field"><label>Section Title</label><input data-edit-key="whoTitle" value="Who we serve" /></div>
-                    <div class="form-field full-width"><label>Intro</label><textarea rows="2" data-edit-key="whoIntro"></textarea></div>
-                    
-                    <div class="form-field"><label>Card 1 Title</label><input data-edit-key="whoOneTitle" value="Families and youth" /></div>
-                    <div class="form-field"><label>Card 1 Text</label><textarea rows="2" data-edit-key="whoOneBody"></textarea></div>
-                    
-                    <div class="form-field"><label>Card 2 Title</label><input data-edit-key="whoTwoTitle" value="Neighborhood partners" /></div>
-                    <div class="form-field"><label>Card 2 Text</label><textarea rows="2" data-edit-key="whoTwoBody"></textarea></div>
-                    
-                    <div class="form-field"><label>Card 3 Title</label><input data-edit-key="whoThreeTitle" value="Community leaders" /></div>
-                    <div class="form-field"><label>Card 3 Text</label><textarea rows="2" data-edit-key="whoThreeBody"></textarea></div>
-                </div>
-            </details>
-
-            <!-- OUR WORK -->
-            <details style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-                 <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Our Work</summary>
-                 <div class="owner-grid">
-                    <div class="form-field"><label>Section Title</label><input data-edit-key="workTitle" value="Our work / programs" /></div>
-                    <div class="form-field full-width"><label>Intro</label><textarea rows="2" data-edit-key="workIntro"></textarea></div>
-                    
-                    <div class="form-field"><label>Program 1 Title</label><input data-edit-key="workOneTitle" /></div>
-                    <div class="form-field"><label>Program 1 Text</label><textarea rows="2" data-edit-key="workOneBody"></textarea></div>
-
-                    <div class="form-field"><label>Program 2 Title</label><input data-edit-key="workTwoTitle" /></div>
-                    <div class="form-field"><label>Program 2 Text</label><textarea rows="2" data-edit-key="workTwoBody"></textarea></div>
-
-                    <div class="form-field"><label>Program 3 Title</label><input data-edit-key="workThreeTitle" /></div>
-                    <div class="form-field"><label>Program 3 Text</label><textarea rows="2" data-edit-key="workThreeBody"></textarea></div>
-
-                    <div class="form-field"><label>Program 4 Title</label><input data-edit-key="workFourTitle" /></div>
-                    <div class="form-field"><label>Program 4 Text</label><textarea rows="2" data-edit-key="workFourBody"></textarea></div>
-                 </div>
-            </details>
-
-            <!-- IMPACT GALLERY (IMAGES) -->
-            <details style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-                <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Community Impact (Photos)</summary>
-                <div class="owner-grid">
-                    <div class="form-field"><label>Section Title</label><input data-edit-key="impactTitle" value="Community impact" /></div>
-                    <div class="form-field full-width"><label>Intro</label><textarea rows="2" data-edit-key="impactIntro"></textarea></div>
-                </div>
-
-                <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
-                    <!-- Image 1 -->
-                    <div class="card" style="padding: 1rem; background: var(--surface);">
-                        <strong style="display:block; margin-bottom:0.5rem;">Photo #1</strong>
-                        <div class="owner-grid">
-                            <div class="form-field full-width"><label>Image URL</label><input data-edit-key="impactOneImage" placeholder="https://..." /></div>
-                            <div class="form-field"><label>Label/Tag</label><input data-edit-key="impactOneLabel" /></div>
-                            <div class="form-field"><label>Title</label><input data-edit-key="impactOneTitle" /></div>
-                            <div class="form-field full-width"><label>Description</label><textarea rows="2" data-edit-key="impactOneBody"></textarea></div>
-                        </div>
-                    </div>
-                    <!-- Image 2 -->
-                    <div class="card" style="padding: 1rem; background: var(--surface);">
-                        <strong style="display:block; margin-bottom:0.5rem;">Photo #2</strong>
-                        <div class="owner-grid">
-                            <div class="form-field full-width"><label>Image URL</label><input data-edit-key="impactTwoImage" placeholder="https://..." /></div>
-                            <div class="form-field"><label>Label/Tag</label><input data-edit-key="impactTwoLabel" /></div>
-                            <div class="form-field"><label>Title</label><input data-edit-key="impactTwoTitle" /></div>
-                            <div class="form-field full-width"><label>Description</label><textarea rows="2" data-edit-key="impactTwoBody"></textarea></div>
-                        </div>
-                    </div>
-                    <!-- Image 3 -->
-                    <div class="card" style="padding: 1rem; background: var(--surface);">
-                        <strong style="display:block; margin-bottom:0.5rem;">Photo #3</strong>
-                        <div class="owner-grid">
-                             <div class="form-field full-width"><label>Image URL</label><input data-edit-key="impactThreeImage" placeholder="https://..." /></div>
-                            <div class="form-field"><label>Label/Tag</label><input data-edit-key="impactThreeLabel" /></div>
-                            <div class="form-field"><label>Title</label><input data-edit-key="impactThreeTitle" /></div>
-                            <div class="form-field full-width"><label>Description</label><textarea rows="2" data-edit-key="impactThreeBody"></textarea></div>
-                        </div>
-                    </div>
-                    <!-- Image 4 -->
-                    <div class="card" style="padding: 1rem; background: var(--surface);">
-                        <strong style="display:block; margin-bottom:0.5rem;">Photo #4</strong>
-                        <div class="owner-grid">
-                             <div class="form-field full-width"><label>Image URL</label><input data-edit-key="impactFourImage" placeholder="https://..." /></div>
-                            <div class="form-field"><label>Label/Tag</label><input data-edit-key="impactFourLabel" /></div>
-                            <div class="form-field"><label>Title</label><input data-edit-key="impactFourTitle" /></div>
-                            <div class="form-field full-width"><label>Description</label><textarea rows="2" data-edit-key="impactFourBody"></textarea></div>
-                        </div>
-                    </div>
-                </div>
-            </details>
-
-            <!-- CALL TO ACTION -->
-            <details style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-                <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Call to Action (Footer)</summary>
-                <div class="owner-grid">
-                    <div class="form-field"><label>Title</label><input data-edit-key="ctaTitle" value="Support our mission" /></div>
-                    <div class="form-field full-width"><label>Body Text</label><textarea rows="2" data-edit-key="ctaBody"></textarea></div>
-                    <div class="form-field"><label>Primary Btn Text</label><input data-edit-key="ctaPrimaryText" value="Donate Today" /></div>
-                    <div class="form-field"><label>Primary Btn Link</label><input data-edit-key="ctaPrimaryLink" value="#" /></div>
-                    <div class="form-field"><label>Secondary Btn Text</label><input data-edit-key="ctaSecondaryText" value="Partner With Us" /></div>
-                    <div class="form-field"><label>Secondary Btn Link</label><input data-edit-key="ctaSecondaryLink" value="#" /></div>
-                </div>
-            </details>
-
-            <!-- CONTACT -->
-            <details style="margin-bottom: 1rem;">
-                <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Contact Info</summary>
-                <div class="owner-grid">
-                    <div class="form-field"><label>Heading</label><input data-edit-key="contactTitle" value="Contact / connect" /></div>
-                    <div class="form-field full-width"><label>Intro</label><textarea rows="2" data-edit-key="contactIntro"></textarea></div>
-                    
-                    <div class="form-field"><label>Email Display</label><input data-edit-key="contactEmail" value="hello@communitygrants.org" /></div>
-                    <div class="form-field"><label>Email Link (mailto:)</label><input data-edit-key="contactEmailHref" value="mailto:hello@communitygrants.org" /></div>
-                    
-                    <div class="form-field"><label>'Partner' Heading</label><input data-edit-key="contactPartnerTitle" value="Partner With Us" /></div>
-                    <div class="form-field full-width"><label>'Partner' Text</label><textarea rows="2" data-edit-key="contactPartnerBody"></textarea></div>
-                </div>
             </details>
 
             <div class="owner-actions" style="position: sticky; bottom: 1rem; background: white; padding: 1rem; border-top: 1px solid var(--border); box-shadow: 0 -4px 12px rgba(0,0,0,0.05); z-index: 50;">

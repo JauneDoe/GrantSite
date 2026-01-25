@@ -34,6 +34,7 @@
         <aside class="dashboard-sidebar">
             <nav class="dashboard-nav">
                 <a class="dash-link active" onclick="switchTab('requests')">Client Requests</a>
+                <a class="dash-link" onclick="switchTab('messages')">Messages</a>
                 <a class="dash-link" onclick="switchTab('settings')">Settings</a>
                 
                 <hr style="border: 0; border-top: 1px solid var(--border); margin: 0.5rem 0;" />
@@ -73,7 +74,6 @@
                                     <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Project</th>
                                     <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Amount</th>
                                     <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Status</th>
-                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Messages</th>
                                     <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Actions</th>
                                 </tr>
                             </thead>
@@ -85,7 +85,38 @@
                 </div>
             </div>
 
-            <!-- VIEW 2: SETTINGS -->
+            <!-- VIEW 2: MESSAGES -->
+            <div id="view-messages" class="dash-view">
+                 <div class="section-heading">
+                    <h2>Message Center</h2>
+                    <p>Direct communication with clients.</p>
+                </div>
+                <!-- Layout: Sidebar list of clients | Main chat window -->
+                <div class="card" style="display: grid; grid-template-columns: 250px 1fr; height: 60vh; padding: 0; overflow: hidden;">
+                    <!-- List -->
+                    <div style="border-right: 1px solid var(--border); overflow-y: auto; background: #fafafa;">
+                        <h4 style="padding: 1rem; border-bottom: 1px solid var(--border); margin: 0; position: sticky; top: 0; background: #fafafa;">Clients</h4>
+                        <div id="msg-client-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    <!-- Chat Area -->
+                    <div style="display: flex; flex-direction: column;">
+                         <div id="chat-header" style="padding: 1rem; border-bottom: 1px solid var(--border); font-weight: 600; background: #fff;">
+                             Select a client to chat
+                         </div>
+                         <div id="chat-window" style="flex: 1; padding: 1.5rem; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; gap: 1rem;">
+                             <!-- Messages -->
+                         </div>
+                         <div style="padding: 1rem; border-top: 1px solid var(--border); background: #fff; display: flex; gap: 0.5rem;">
+                             <input id="admin-chat-input" type="text" class="chat-input" disabled placeholder="Select a client first..." onkeydown="if(event.key === 'Enter') sendAdminMessage()">
+                             <button id="admin-chat-send" class="button button-primary" disabled onclick="sendAdminMessage()">Send</button>
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: SETTINGS -->
             <div id="view-settings" class="dash-view">
                  <div class="section-heading">
                     <h2>Admin Settings</h2>
@@ -97,21 +128,6 @@
 
         </main>
     </div>
-
-    <!-- Message Modal -->
-    <dialog id="msg-modal">
-        <div class="modal-header">
-            <h3 id="msg-client-name">Chat</h3>
-            <button class="close-button" onclick="closeMessages()">&times;</button>
-        </div>
-        <div class="modal-body" id="msg-body">
-            <!-- Messages go here -->
-        </div>
-        <div class="modal-footer">
-            <input type="text" id="msg-input" class="chat-input" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') sendMessage()">
-            <button class="button button-primary" onclick="sendMessage()">Send</button>
-        </div>
-    </dialog>
 
     <script>
       // TAB SWITCHING LOGIC
@@ -129,7 +145,97 @@
            });
 
           if(tabName === 'requests') navLinks[0].classList.add('active');
-          if(tabName === 'settings') navLinks[1].classList.add('active');
+          if(tabName === 'messages') {
+              navLinks[1].classList.add('active');
+              loadMessageClients();
+          }
+          if(tabName === 'settings') navLinks[2].classList.add('active');
+      }
+
+      // MESSAGING LOGIC
+      let activeChatClient = null;
+
+      function loadMessageClients() {
+          const list = document.getElementById('msg-client-list');
+          list.innerHTML = '';
+          
+          // Get unique clients from requests
+          const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
+          const clients = [...new Set(requests.map(r => r.clientName))];
+          
+          if (clients.length === 0) {
+              list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">No clients found.</div>`;
+              return;
+          }
+          
+          clients.forEach(client => {
+              const div = document.createElement('div');
+              div.style.padding = '0.75rem 1rem';
+              div.style.cursor = 'pointer';
+              div.style.borderBottom = '1px solid var(--border)';
+              div.style.fontSize = '0.9rem';
+              div.textContent = client;
+              div.onclick = () => openAdminChat(client);
+              
+              if(activeChatClient === client) {
+                  div.style.background = '#eef2ff';
+                  div.style.fontWeight = '600';
+              } else {
+                  div.onmouseover = () => div.style.background = '#eee';
+                  div.onmouseout = () => div.style.background = 'transparent';
+              }
+              
+              list.appendChild(div);
+          });
+      }
+
+      function openAdminChat(clientName) {
+          activeChatClient = clientName;
+          document.getElementById('chat-header').textContent = "Chat with " + clientName;
+          document.getElementById('admin-chat-input').disabled = false;
+          document.getElementById('admin-chat-send').disabled = false;
+          loadMessageClients(); // Re-render list to show active state
+          renderChatMessages();
+      }
+
+      function renderChatMessages() {
+          if(!activeChatClient) return;
+          
+          const window = document.getElementById('chat-window');
+          const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
+          const msgs = allMsgs[activeChatClient] || [];
+          
+          window.innerHTML = '';
+          if(msgs.length === 0) {
+              window.innerHTML = `<p style="color:var(--muted); text-align: center; margin-top: 2rem;">No messages yet. Say hello!</p>`;
+          }
+          
+          msgs.forEach(m => {
+              const isMe = m.sender === 'Admin';
+              const div = document.createElement('div');
+              div.className = `message ${isMe ? 'sent' : 'received'}`;
+              div.innerHTML = `${m.text} <span class="message-meta">${m.time}</span>`;
+              window.appendChild(div);
+          });
+          
+           window.scrollTop = window.scrollHeight;
+      }
+
+      function sendAdminMessage() {
+          if(!activeChatClient) return;
+          const input = document.getElementById('admin-chat-input');
+          const text = input.value.trim();
+          if(!text) return;
+
+          const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
+          if(!allMsgs[activeChatClient]) allMsgs[activeChatClient] = [];
+          
+          const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          allMsgs[activeChatClient].push({ sender: 'Admin', text: text, time: now });
+          
+          localStorage.setItem("siteMessages", JSON.stringify(allMsgs));
+          input.value = '';
+          renderChatMessages();
       }
 
       // CRM LOGIC: LOAD REQUESTS
@@ -154,15 +260,10 @@
               const row = document.createElement('tr');
               row.style.borderBottom = "1px solid var(--border)";
               
-              const optionsHtml = ['Received', 'Reviewing', 'Action Needed', 'Approved', 'Funded', 'Denied'].map(s => 
+              const statusOptions = ['Received', 'Reviewing', 'Approved', 'Funded', 'Denied'];
+              let optionsHtml = statusOptions.map(s => 
                   `<option value="${s}" ${req.status === s ? 'selected' : ''}>${s}</option>`
               ).join('');
-
-              // Count messages
-              let msgCount = req.messages ? req.messages.length : 0;
-              if (req.adminNotes) msgCount++; // Count legacy note
-              
-              const btnText = msgCount > 0 ? `View Messages (${msgCount})` : "Start Chat";
 
               row.innerHTML = `
                   <td style="padding: 1rem;">${req.date}</td>
@@ -175,11 +276,6 @@
                       </select>
                   </td>
                   <td style="padding: 1rem;">
-                      <button class="button button-ghost" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;" onclick="openMessages(${index})">
-                        ${btnText}
-                      </button>
-                  </td>
-                  <td style="padding: 1rem;">
                       <button onclick="deleteRequest(${index})" style="color: #dc2626; background: none; border: none; cursor: pointer; font-size: 0.8rem; text-decoration: underline;">Delete</button>
                   </td>
               `;
@@ -187,86 +283,14 @@
           });
       }
 
-      // CHAT LOGIC
-      let currentReqIndex = -1;
-
-      function openMessages(index) {
-          currentReqIndex = index;
-          const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
-          const req = requests[index];
-          const modal = document.getElementById('msg-modal');
-          const body = document.getElementById('msg-body');
-          
-          document.getElementById('msg-client-name').textContent = "Chat with " + req.clientName;
-          body.innerHTML = '';
-
-          // Migration: Show legacy admin note if exists
-          let msgs = req.messages || [];
-          if (msgs.length === 0 && req.adminNotes) {
-             msgs = [{ sender: 'Admin', text: req.adminNotes, time: req.date }];
-             // We don't save this migration permanently to avoid dupes unless they send a new msg, 
-             // but strictly for display it's fine.
-          }
-
-          if (msgs.length === 0) {
-              body.innerHTML = `<p style="text-align:center; color: var(--muted); padding: 1rem;">No messages yet. Start the conversation!</p>`;
-          } else {
-              msgs.forEach(m => {
-                 const isMe = m.sender === 'Admin';
-                 const div = document.createElement('div');
-                 div.className = `message ${isMe ? 'sent' : 'received'}`;
-                 div.innerHTML = `
-                    ${m.text}
-                    <span class="message-meta">${m.time}</span>
-                 `;
-                 body.appendChild(div);
-              });
-          }
-          
-          modal.showModal();
-          // Scroll to bottom
-          body.scrollTop = body.scrollHeight;
-      }
-
-      function closeMessages() {
-          document.getElementById('msg-modal').close();
-          currentReqIndex = -1;
-      }
-
-      function sendMessage() {
-          if (currentReqIndex === -1) return;
-          
-          const input = document.getElementById('msg-input');
-          const text = input.value.trim();
-          if (!text) return;
-
-          const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
-          const req = requests[currentReqIndex];
-          
-          if (!req.messages) req.messages = [];
-          
-          // Legacy migration on first write
-          if (req.messages.length === 0 && req.adminNotes) {
-              req.messages.push({ sender: 'Admin', text: req.adminNotes, time: req.date });
-              delete req.adminNotes; // Clear legacy
-          }
-
-          const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          req.messages.push({
-              sender: 'Admin',
-              text: text,
-              time: now
-          });
-
-          localStorage.setItem("clientRequests", JSON.stringify(requests));
-          input.value = '';
-          
-          // Reload view
-          openMessages(currentReqIndex);
-          loadCRM(); // Update button count
-      }
-
       function updateStatus(index, newStatus) {
+          const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
+          if (requests[index]) {
+              requests[index].status = newStatus;
+              localStorage.setItem("clientRequests", JSON.stringify(requests));
+              // Optional: Show toast notification
+          }
+      }
 
       function deleteRequest(index) {
           if (confirm("Are you sure you want to delete this record?")) {
