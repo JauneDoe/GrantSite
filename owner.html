@@ -34,7 +34,7 @@
         <aside class="dashboard-sidebar">
             <nav class="dashboard-nav">
                 <a class="dash-link active" onclick="switchTab('requests')">Client Requests</a>
-                <a class="dash-link" onclick="switchTab('messages')">Messages</a>
+                <a class="dash-link" onclick="switchTab('messages')" id="admin-nav-msgs">Messages</a>
                 <a class="dash-link" onclick="switchTab('settings')">Settings</a>
                 
                 <hr style="border: 0; border-top: 1px solid var(--border); margin: 0.5rem 0;" />
@@ -284,6 +284,8 @@
       
       // Polling for same-tab demo purposes 
       setInterval(() => {
+         updateAdminGlobalBadge(); // Always check global
+         
          if(!activeChatClient) return;
          if(localStorage.getItem('typing_' + activeChatClient + '_client') === 'true') {
              document.getElementById('admin-typing-indicator').classList.add('active');
@@ -298,6 +300,18 @@
              renderChatMessages();
          }
       }, 1000);
+
+      function updateAdminGlobalBadge() {
+          const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
+          let totalUnread = 0;
+          
+          Object.values(allMsgs).forEach(clientMsgs => {
+              totalUnread += clientMsgs.filter(m => m.sender === 'Client' && !m.read).length;
+          });
+          
+          const link = document.getElementById('admin-nav-msgs');
+          link.innerHTML = `Messages ${totalUnread > 0 ? `<span class="badge" style="display: inline-block; margin-left: 0.5rem;">${totalUnread}</span>` : ''}`;
+      }
 
       function sendAdminMessage() {
           if(!activeChatClient) return;
@@ -396,6 +410,7 @@
 
       // Initialize
       loadCRM();
+      updateAdminGlobalBadge();
     </script>
   </body>
 </html>
