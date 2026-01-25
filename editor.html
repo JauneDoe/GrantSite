@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Website Editor - CGI</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <script>
+      if (sessionStorage.getItem("ownerAccess") !== "granted") {
+        window.location.href = "login.html";
+      }
+    </script>
+    <header class="site-header" style="position: sticky; top: 0; z-index: 100;">
+      <nav class="nav">
+        <span class="logo">
+          <span class="logo-mark">CGI</span>
+          <span class="logo-text">Website Editor</span>
+        </span>
+        <div class="nav-actions">
+          <a class="button button-ghost" href="owner.html">Back to Admin</a>
+          <a class="button button-ghost" href="index.html" target="_blank">View Live Site</a>
+         </div>
+      </nav>
+    </header>
+
+    <main class="dashboard-main" style="max-width: 900px; margin: 0 auto; padding: 2rem;">
+        <div class="section-heading">
+            <h2>Website Content Editor</h2>
+            <p>Update text, images, and brand colors on your public landing page.</p>
+        </div>
+
+        <form class="owner-form card" id="owner-form">
+            <!-- BRANDING -->
+            <details open style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Branding & Navigation</summary>
+                <div class="owner-grid">
+                    <div class="form-field">
+                        <label for="logoMark">Logo initials</label>
+                        <input id="logoMark" data-edit-key="logoMark" value="CGI" />
+                    </div>
+                    <div class="form-field">
+                        <label for="logoText">Logo text</label>
+                        <input id="logoText" data-edit-key="logoText" value="Community Grants Initiative" />
+                    </div>
+                </div>
+            </details>
+
+            <!-- FUNDRAISING -->
+            <details open style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Success Tracker</summary>
+                 <p class="form-help">
+                  Option 1: Enter values manually.<br>
+                  Option 2: Paste a "Published to Web" Google Sheet CSV link.
+                </p>
+                <div class="owner-grid">
+                   <div class="form-field">
+                    <label for="fundraisingCurrent">Current Verified ($)</label>
+                    <input type="number" id="fundraisingCurrent" data-edit-key="fundraisingCurrent" placeholder="e.g. 50000" />
+                   </div>
+                   <div class="form-field">
+                    <label for="fundraisingGoal">Target Amount ($)</label>
+                    <input type="number" id="fundraisingGoal" data-edit-key="fundraisingGoal" placeholder="e.g. 100000" />
+                   </div>
+                   <div class="form-field full-width">
+                    <label for="fundraisingSheetUrl">Google Sheet CSV Link</label>
+                    <input id="fundraisingSheetUrl" data-edit-key="fundraisingSheetUrl" placeholder="https://docs.google.com/.../pub?output=csv" />
+                   </div>
+                </div>
+            </details>
+
+            <!-- COLORS -->
+            <details style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Theme & Colors</summary>
+                <div class="owner-grid">
+                  <div class="form-field">
+                    <label for="themeBg">Background Color</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                      <input type="color" id="themeBg" data-edit-key="themeBg" value="#fffaf6" style="height: 40px; width: 60px; padding: 0;" />
+                    </div>
+                  </div>
+                  <div class="form-field">
+                     <label for="themePrimary">Primary Color</label>
+                     <input type="color" id="themePrimary" data-edit-key="themePrimary" value="#d97706" style="height: 40px; width: 60px; padding: 0;" />
+                  </div>
+                </div>
+            </details>
+            
+            <!-- HERO TEXT -->
+            <details style="margin-bottom: 1rem;">
+                <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Hero Section Text</summary>
+                 <div class="owner-grid">
+                      <div class="form-field full-width">
+                        <label for="heroTitle">Main Headline</label>
+                        <textarea id="heroTitle" rows="2" data-edit-key="heroTitle">We connect resources to the people and places that need them most.</textarea>
+                      </div>
+                       <div class="form-field full-width">
+                        <label for="heroSubtitle">Subtitle</label>
+                        <textarea id="heroSubtitle" rows="2" data-edit-key="heroSubtitle">Our mission is... so every community can thrive.</textarea>
+                      </div>
+                 </div>
+            </details>
+
+            <div class="owner-actions" style="position: sticky; bottom: 1rem; background: white; padding: 1rem; border-top: 1px solid var(--border); box-shadow: 0 -4px 12px rgba(0,0,0,0.05); z-index: 50;">
+              <button class="button button-primary" type="submit">Save Changes to Site</button>
+              <button class="button button-ghost" type="button" id="reset-edits">Reset Defaults</button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+      // SITE EDITOR LOGIC
+      const form = document.getElementById("owner-form");
+      const resetButton = document.getElementById("reset-edits");
+      const storedEdits = localStorage.getItem("siteEdits");
+      const edits = storedEdits ? JSON.parse(storedEdits) : {};
+      
+      document.querySelectorAll("[data-edit-key]").forEach((input) => {
+        const key = input.dataset.editKey;
+        if (Object.prototype.hasOwnProperty.call(edits, key)) {
+          input.value = edits[key];
+        }
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const payload = {};
+        document.querySelectorAll("[data-edit-key]").forEach((input) => {
+          payload[input.dataset.editKey] = input.value.trim();
+        });
+        localStorage.setItem("siteEdits", JSON.stringify(payload));
+        alert("Changes saved. Open the homepage to review updates.");
+      });
+
+      resetButton.addEventListener("click", () => {
+        if(confirm("Reset all text and colors to original defaults?")) {
+            localStorage.removeItem("siteEdits");
+            location.reload();
+        }
+      });
+    </script>
+  </body>
+</html>
