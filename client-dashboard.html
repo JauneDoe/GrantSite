@@ -38,7 +38,7 @@
         <!-- Main Content Area -->
         <main class="dashboard-main">
             <!-- TAB 1: DASHBOARD -->
-            <div id="view-dashboard" class="client-view active">
+            <div id="view-dashboard" class="dash-view active">
                 <div class="section-heading">
                     <h2>Grant Applications</h2>
                     <p>Manage your funding requests and track status updates.</p>
@@ -122,7 +122,7 @@
       </div>
 
     <!-- TAB 2: MESSAGES -->
-    <div id="view-messages" class="client-view">
+    <div id="view-messages" class="dash-view">
          <div class="section-heading">
             <h2>Message Center</h2>
             <p>Direct communication with your Grant Consultant.</p>
@@ -131,7 +131,11 @@
              <div id="client-chat-window" style="flex: 1; padding: 1.5rem; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; gap: 1rem;">
                  <!-- Messages -->
              </div>
-             <div style="padding: 1rem; border-top: 1px solid var(--border); background: #fff; display: flex; gap: 0.5rem;">
+             <div style="padding: 1rem; border-top: 1px solid var(--border); background: #fff; display: flex; gap: 0.5rem; align-items: center;">
+                 <button class="button button-ghost" style="padding: 0.5rem 0.75rem;" onclick="document.getElementById('client-file-input').click()" title="Upload File">
+                    📎
+                 </button>
+                 <input type="file" id="client-file-input" style="display: none;" onchange="handleClientFileUpload(this)">
                  <input id="client-chat-input" type="text" class="chat-input" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') sendClientMessage()">
                  <button class="button button-primary" onclick="sendClientMessage()">Send</button>
              </div>
@@ -148,7 +152,7 @@
 
         // TAB SWITCHING
         function switchClientTab(tabName) {
-            document.querySelectorAll('.client-view').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.dash-view').forEach(el => el.classList.remove('active'));
             document.getElementById('view-' + tabName).classList.add('active');
             
             const navLinks = document.querySelectorAll('.dash-link');
@@ -190,7 +194,23 @@
             const input = document.getElementById('client-chat-input');
             const text = input.value.trim();
             if(!text) return;
+            
+            saveMessage(clientName, text);
+            input.value = '';
+        }
 
+        function handleClientFileUpload(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
+                const msg = `Shared a file: <br><a href="#" style="color: var(--primary); text-decoration: underline;">📄 ${file.name}</a>`;
+                
+                saveMessage(clientName, msg);
+                input.value = ''; // Reset
+            }
+        }
+
+        function saveMessage(clientName, text) {
             const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
             if(!allMsgs[clientName]) allMsgs[clientName] = [];
             
@@ -198,7 +218,6 @@
             allMsgs[clientName].push({ sender: 'Client', text: text, time: now });
             
             localStorage.setItem("siteMessages", JSON.stringify(allMsgs));
-            input.value = '';
             renderClientChat();
         }
 

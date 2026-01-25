@@ -108,7 +108,11 @@
                          <div id="chat-window" style="flex: 1; padding: 1.5rem; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; gap: 1rem;">
                              <!-- Messages -->
                          </div>
-                         <div style="padding: 1rem; border-top: 1px solid var(--border); background: #fff; display: flex; gap: 0.5rem;">
+                         <div style="padding: 1rem; border-top: 1px solid var(--border); background: #fff; display: flex; gap: 0.5rem; align-items: center;">
+                             <button id="admin-file-btn" class="button button-ghost" style="padding: 0.5rem 0.75rem;" disabled onclick="document.getElementById('admin-file-input').click()" title="Upload File">
+                                📎
+                             </button>
+                             <input type="file" id="admin-file-input" style="display: none;" onchange="handleAdminFileUpload(this)">
                              <input id="admin-chat-input" type="text" class="chat-input" disabled placeholder="Select a client first..." onkeydown="if(event.key === 'Enter') sendAdminMessage()">
                              <button id="admin-chat-send" class="button button-primary" disabled onclick="sendAdminMessage()">Send</button>
                          </div>
@@ -194,6 +198,7 @@
           document.getElementById('chat-header').textContent = "Chat with " + clientName;
           document.getElementById('admin-chat-input').disabled = false;
           document.getElementById('admin-chat-send').disabled = false;
+          document.getElementById('admin-file-btn').disabled = false;
           loadMessageClients(); // Re-render list to show active state
           renderChatMessages();
       }
@@ -226,15 +231,29 @@
           const input = document.getElementById('admin-chat-input');
           const text = input.value.trim();
           if(!text) return;
+          
+          saveAdminMsg(text);
+          input.value = '';
+      }
 
+      function handleAdminFileUpload(input) {
+          if (input.files && input.files[0] && activeChatClient) {
+                const file = input.files[0];
+                const msg = `Shared a file: <br><a href="#" style="color: #fff; text-decoration: underline;">📄 ${file.name}</a>`;
+                saveAdminMsg(msg);
+                input.value = '';
+          }
+      }
+
+      function saveAdminMsg(text) {
           const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
+          if(!activeChatClient) return;
           if(!allMsgs[activeChatClient]) allMsgs[activeChatClient] = [];
           
           const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           allMsgs[activeChatClient].push({ sender: 'Admin', text: text, time: now });
           
           localStorage.setItem("siteMessages", JSON.stringify(allMsgs));
-          input.value = '';
           renderChatMessages();
       }
 
