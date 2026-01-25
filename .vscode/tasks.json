@@ -1,0 +1,18 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Edit styles.css",
+			"type": "shell",
+			"command": "grep",
+			"args": [
+				"c:\\Users\\Harri\\Documents\\GitHub\\GrantSite\\styles.css",
+				"\n/* Progress Bar Styles */\n.progress-container {\n    margin-top: 1.5rem;\n    background: #fff;\n    border-radius: 12px;\n    padding: 1.25rem;\n    box-shadow: 0 4px 12px rgba(0,0,0,0.05);\n    border: 1px solid var(--border);\n}\n\n.progress-header {\n    display: flex;\n    justify-content: space-between;\n    margin-bottom: 0.5rem;\n    font-size: 0.9rem;\n    font-weight: 600;\n}\n\n.progress-bar {\n    height: 12px;\n    background-color: var(--secondary);\n    border-radius: 6px;\n    overflow: hidden;\n    position: relative;\n}\n\n.progress-fill {\n    height: 100%;\n    background-color: var(--primary);\n    width: 0%; /* JS will update this */\n    border-radius: 6px;\n    transition: width 1s ease-out;\n}\n\n.progress-stats {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 0.5rem;\n    font-size: 0.85rem;\n    color: var(--muted);\n}\n",
+				".hero-card .hero-actions {"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "edit"
+		}
+	]
+}
