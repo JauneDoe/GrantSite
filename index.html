@@ -498,31 +498,57 @@
       });
 
       // Fundraising Progress Update
-      const fCurrent = parseFloat(edits.fundraisingCurrent || "0");
-      const fGoal = parseFloat(edits.fundraisingGoal || "0"); // Default to 0 to prevent division by zero issues initially/visually
+      const updateProgressUI = (current, goal) => {
+          const fCurrent = parseFloat(current || "0");
+          const fGoal = parseFloat(goal || "0");
 
-      if (fGoal > 0 || fCurrent > 0) {
-          // If we have data, update the display. Even if goal is 0 but current is set, we can show current.
-          const dollarUS = Intl.NumberFormat("en-US", {
+          if (fGoal > 0 || fCurrent > 0) {
+            const dollarUS = Intl.NumberFormat("en-US", {
               style: "currency",
               currency: "USD",
               maximumFractionDigits: 0,
-          });
+            });
 
-          const pCurrentEl = document.getElementById("progress-current");
-          const pGoalEl = document.getElementById("progress-goal");
-          const pPercentEl = document.getElementById("progress-percent");
-          const pFillEl = document.getElementById("progress-fill");
+            const pCurrentEl = document.getElementById("progress-current");
+            const pGoalEl = document.getElementById("progress-goal");
+            const pPercentEl = document.getElementById("progress-percent");
+            const pFillEl = document.getElementById("progress-fill");
 
-          if (pCurrentEl) pCurrentEl.textContent = `${dollarUS.format(fCurrent)} raised`;
-          if (pGoalEl) pGoalEl.textContent = `Goal: ${dollarUS.format(fGoal)}`;
-          
-          if (fGoal > 0) {
-             const percent = Math.min(100, Math.max(0, (fCurrent / fGoal) * 100));
-             if (pPercentEl) pPercentEl.textContent = `${Math.round(percent)}%`;
-             // Add a small delay for animation if desired, or set immediately
-             if (pFillEl) setTimeout(() => { pFillEl.style.width = `${percent}%`; }, 100);
+            if (pCurrentEl) pCurrentEl.textContent = `${dollarUS.format(fCurrent)} raised`;
+            if (pGoalEl) pGoalEl.textContent = `Goal: ${dollarUS.format(fGoal)}`;
+
+            if (fGoal > 0) {
+              const percent = Math.min(100, Math.max(0, (fCurrent / fGoal) * 100));
+              if (pPercentEl) pPercentEl.textContent = `${Math.round(percent)}%`;
+              if (pFillEl) setTimeout(() => { pFillEl.style.width = `${percent}%`; }, 100);
+            }
           }
+      };
+
+      const sheetUrl = edits.fundraisingSheetUrl;
+      
+      if (sheetUrl && sheetUrl.length > 5) {
+          // Attempt to fetch from Google Sheet
+          fetch(sheetUrl)
+            .then(res => res.text())
+            .then(csv => {
+                // Parse simple CSV: expects Row 2 to have values 50000,100000 etc.
+                const lines = csv.split('\n');
+                if (lines.length >= 2) {
+                    const values = lines[1].split(','); // Get second row (Index 1)
+                    if (values.length >= 2) {
+                        const current = values[0].trim();
+                        const goal = values[1].trim();
+                        updateProgressUI(current, goal);
+                    }
+                }
+            })
+            .catch(err => {
+                console.warn("Could not fetch fundraising data, falling back to manual edits.", err);
+                updateProgressUI(edits.fundraisingCurrent, edits.fundraisingGoal);
+            });
+      } else {
+          updateProgressUI(edits.fundraisingCurrent, edits.fundraisingGoal);
       }
 
       document.addEventListener("keydown", (event) => {

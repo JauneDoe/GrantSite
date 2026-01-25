@@ -442,6 +442,17 @@ a {
   gap: 1rem;
 }
 
+.owner-grid .full-width {
+    grid-column: 1 / -1;
+}
+
+.help-text {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+}
+
 .owner-actions {
   display: flex;
   gap: 1rem;

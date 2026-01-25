@@ -498,7 +498,10 @@
         </div>
 
         <h3>Fundraising Progress</h3>
-        <p class="form-help">Update your current fundraising status. Values entered here will update the progress bar on the homepage instantly.</p>
+        <p class="form-help">
+          Option 1: Enter values manually below.<br>
+          Option 2: Paste a "Published to Web" Google Sheet CSV link to sync automatically.
+        </p>
         <div class="owner-grid">
            <div class="form-field">
             <label for="fundraisingCurrent">Current Amount ($)</label>
@@ -507,6 +510,11 @@
            <div class="form-field">
             <label for="fundraisingGoal">Goal Amount ($)</label>
             <input type="number" id="fundraisingGoal" data-edit-key="fundraisingGoal" placeholder="e.g. 100000" />
+           </div>
+           <div class="form-field full-width">
+            <label for="fundraisingSheetUrl">Google Sheet CSV Link (Optional)</label>
+            <input id="fundraisingSheetUrl" data-edit-key="fundraisingSheetUrl" placeholder="https://docs.google.com/.../pub?output=csv" />
+            <span class="help-text">Overrides manual values. File must have 'Current' in A2 and 'Goal' in B2.</span>
            </div>
         </div>
 

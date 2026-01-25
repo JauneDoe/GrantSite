@@ -13,6 +13,19 @@
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "edit"
+		},
+		{
+			"label": "Edit styles.css",
+			"type": "shell",
+			"command": "grep",
+			"args": [
+				"c:\\Users\\Harri\\Documents\\GitHub\\GrantSite\\styles.css",
+				"\n.owner-grid .full-width {\n    grid-column: 1 / -1;\n}\n\n.help-text {\n    display: block;\n    font-size: 0.8rem;\n    color: var(--muted);\n    margin-top: 0.25rem;\n}\n",
+				".owner-grid {"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "edit"
 		}
 	]
 }
