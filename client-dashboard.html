@@ -57,7 +57,6 @@
                             <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Project Name</th>
                             <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Request Amount</th>
                             <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Status</th>
-                            <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Next Step</th>
                         </tr>
                     </thead>
                     <tbody style="font-size: 0.95rem;" id="app-list">
@@ -67,7 +66,6 @@
                            <td style="padding: 1rem 0.5rem; font-weight: 600;">Community Garden Expansion</td>
                            <td style="padding: 1rem 0.5rem;">$25,000</td>
                            <td style="padding: 1rem 0.5rem;"><span style="color: #d97706; background: #fffbeb; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700;">Under Review</span></td>
-                           <td style="padding: 1rem 0.5rem; color: var(--muted);">Awaiting initial assessment</td>
                        </tr>
                     </tbody>
                 </table>
@@ -327,7 +325,7 @@
              appList.innerHTML = ""; // Clear current mock data
              
              if (requests.length === 0) {
-                 appList.innerHTML = `<tr><td colspan="5" style="padding: 1rem; text-align: center; color: var(--muted);">No active applications found.</td></tr>`;
+                 appList.innerHTML = `<tr><td colspan="4" style="padding: 1rem; text-align: center; color: var(--muted);">No active applications found.</td></tr>`;
                  return;
              }
 
@@ -346,7 +344,6 @@
                     <td style="padding: 1rem 0.5rem; font-weight: 600;">${req.projectName}</td>
                     <td style="padding: 1rem 0.5rem;">$${Number(req.amount).toLocaleString()}</td>
                     <td style="padding: 1rem 0.5rem;"><span style="color: ${statusColor}; background: ${statusBg}; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700;">${req.status}</span></td>
-                    <td style="padding: 1rem 0.5rem; color: var(--muted);">Running normally</td>
                 `;
                 appList.appendChild(row);
              });
