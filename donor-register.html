@@ -27,10 +27,45 @@
       </div>
 
       <form class="card contact-form" id="donor-register-form">
-        <div class="form-field">
-          <label for="name">Full Name</label>
-          <input id="name" name="name" type="text" required placeholder="For tax receipt purposes" />
+        <fieldset class="form-group" style="border: none; padding: 0; margin-bottom: 1.5rem;">
+            <legend style="font-weight: 600; margin-bottom: 0.5rem; display: block;">I am donating as:</legend>
+            <div style="display: flex; gap: 1.5rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                    <input type="radio" name="account-type" value="individual" checked onchange="toggleOrgFields()" /> An Individual
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                    <input type="radio" name="account-type" value="organization" onchange="toggleOrgFields()" /> An Organization
+                </label>
+            </div>
+        </fieldset>
+
+        <div id="org-fields" style="display: none;">
+            <div class="form-field">
+                <label for="org-name">Organization / Company Name</label>
+                <input id="org-name" name="org-name" type="text" placeholder="e.g. Acme Corp Foundation" />
+            </div>
+            <div class="form-field">
+                <label for="ein">EIN (Employer ID Number)</label>
+                <input id="ein" name="ein" type="text" placeholder="XX-XXXXXXX" />
+                <span class="help-text" style="font-size: 0.8rem; color: var(--muted);">Optional. Helpful for corporate matching.</span>
+            </div>
         </div>
+
+        <div class="form-field">
+          <label for="name">Contact Name</label>
+          <input id="name" name="name" type="text" required placeholder="Full legal name for tax receipt" />
+        </div>
+
+        <div class="form-field">
+             <label for="address">Mailing Address</label>
+             <input id="address" name="address" type="text" required placeholder="Street Address" style="margin-bottom: 0.5rem;" />
+             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                 <input id="city" name="city" type="text" placeholder="City" required />
+                 <input id="zip" name="zip" type="text" placeholder="Zip/Postal Code" required />
+             </div>
+             <span class="help-text" style="font-size: 0.8rem; color: var(--muted);">Required for official tax summaries.</span>
+        </div>
+
         <div class="form-field">
           <label for="email">Email</label>
           <input id="email" name="email" type="email" autocomplete="email" required />
@@ -48,6 +83,12 @@
     </main>
 
     <script>
+      function toggleOrgFields() {
+          const isOrg = document.querySelector('input[name="account-type"][value="organization"]').checked;
+          const orgFields = document.getElementById('org-fields');
+          orgFields.style.display = isOrg ? 'block' : 'none';
+      }
+
       const form = document.getElementById("donor-register-form");
 
       form.addEventListener("submit", (event) => {
@@ -62,10 +103,13 @@
 
         // Simulating account creation
         // In a real app, this would send data to a secure server.
-        // For this prototype, we'll just redirect to the dashboard.
         
         sessionStorage.setItem("donorAccess", "granted");
-        sessionStorage.setItem("donorName", form.name.value);
+        
+        const isOrg = document.querySelector('input[name="account-type"][value="organization"]').checked;
+        const displayName = isOrg && form["org-name"].value ? form["org-name"].value : form.name.value;
+        
+        sessionStorage.setItem("donorName", displayName);
         window.location.href = "donor-dashboard.html";
       });
     </script>
