@@ -47,13 +47,13 @@
             <div class="form-field">
                 <label for="ein">EIN (Employer ID Number)</label>
                 <input id="ein" name="ein" type="text" placeholder="XX-XXXXXXX" />
-                <span class="help-text" style="font-size: 0.8rem; color: var(--muted);">Optional. Helpful for corporate matching.</span>
+                <span class="help-text" style="font-size: 0.8rem; color: var(--muted);">Optional. Required for business grants.</span>
             </div>
         </div>
 
         <div class="form-field">
           <label for="name">Contact Name</label>
-          <input id="name" name="name" type="text" required placeholder="Full legal name for tax receipt" />
+          <input id="name" name="name" type="text" required placeholder="Full legal name" />
         </div>
 
         <div class="form-field">
@@ -63,7 +63,6 @@
                  <input id="city" name="city" type="text" placeholder="City" required />
                  <input id="zip" name="zip" type="text" placeholder="Zip/Postal Code" required />
              </div>
-             <span class="help-text" style="font-size: 0.8rem; color: var(--muted);">Required for official tax summaries.</span>
         </div>
 
         <div class="form-field">
@@ -104,13 +103,13 @@
         // Simulating account creation
         // In a real app, this would send data to a secure server.
         
-        sessionStorage.setItem("donorAccess", "granted");
+        sessionStorage.setItem("clientAccess", "granted");
         
         const isOrg = document.querySelector('input[name="account-type"][value="organization"]').checked;
         const displayName = isOrg && form["org-name"].value ? form["org-name"].value : form.name.value;
         
-        sessionStorage.setItem("donorName", displayName);
-        window.location.href = "donor-dashboard.html";
+        sessionStorage.setItem("clientName", displayName);
+        window.location.href = "client-dashboard.html";
       });
     </script>
   </body>

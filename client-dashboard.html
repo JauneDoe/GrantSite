@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Client Dashboard</title>
+    <meta name="description" content="Track your grant applications." />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <script>
+      if (sessionStorage.getItem("clientAccess") !== "granted") {
+        window.location.href = "login.html";
+      }
+    </script>
+    <header class="site-header">
+      <nav class="nav">
+        <span class="logo">
+          <span class="logo-mark">CGI</span>
+          <span class="logo-text">Client Portal</span>
+        </span>
+        <div class="nav-actions">
+            <span style="font-size: 0.9rem; margin-right: 1rem;">Welcome, <span id="user-name">Client</span></span>
+          <a class="button button-ghost" href="index.html">Sign Out</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="section">
+      <div class="section-heading">
+        <h2>Grant Applications</h2>
+        <p>Manage your funding requests and track status updates.</p>
+      </div>
+
+      <div class="grid">
+        <!-- Status Card -->
+        <div class="card" style="grid-column: 1 / -1;">
+             <h3>Active Applications</h3>
+             <div style="overflow-x: auto; margin-top: 1rem;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border);">
+                            <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Date Filed</th>
+                            <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Project Name</th>
+                            <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Request Amount</th>
+                            <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Status</th>
+                            <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Next Step</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 0.95rem;" id="app-list">
+                       <!-- Mock Data -->
+                       <tr style="border-bottom: 1px solid var(--border);">
+                           <td style="padding: 1rem 0.5rem;">Jan 20, 2026</td>
+                           <td style="padding: 1rem 0.5rem; font-weight: 600;">Community Garden Expansion</td>
+                           <td style="padding: 1rem 0.5rem;">$25,000</td>
+                           <td style="padding: 1rem 0.5rem;"><span style="color: #d97706; background: #fffbeb; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700;">Under Review</span></td>
+                           <td style="padding: 1rem 0.5rem; color: var(--muted);">Awaiting initial assessment</td>
+                       </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Intake Form -->
+        <div class="card" style="grid-column: 1 / -1; margin-top: 2rem;">
+            <h3>Start New Request (Intake)</h3>
+            <p style="margin-bottom: 1.5rem; color: var(--muted);">Please provide preliminary details for your funding request.</p>
+            
+            <form id="intake-form" class="contact-form">
+                <div class="form-field">
+                    <label for="project-name">Project / Request Title</label>
+                    <input id="project-name" name="project-name" type="text" required placeholder="e.g. Small Business Startup Capital" />
+                </div>
+
+                <div class="owner-grid"> 
+                    <div class="form-field">
+                        <label for="amount">Requested Amount ($)</label>
+                        <input id="amount" name="amount" type="number" required placeholder="50000" />
+                    </div>
+                     <div class="form-field">
+                        <label for="timeline">Funding Needed By</label>
+                        <input id="timeline" name="timeline" type="date" required />
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label for="description">Description of Need</label>
+                    <textarea id="description" name="description" rows="4" placeholder="Describe what the funds will be used for..." required></textarea>
+                </div>
+
+                <div class="form-field">
+                    <label for="credit-score">Estimated Credit Score (Optional)</label>
+                    <select id="credit-score" name="credit-score">
+                        <option value="">Select Range</option>
+                        <option value="excellent">Excellent (720+)</option>
+                        <option value="good">Good (690-719)</option>
+                        <option value="fair">Fair (630-689)</option>
+                        <option value="poor">Needs Improvement (<629)</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="docs-link">Link to Business Plan / Supporting Docs (Drive, Dropbox)</label>
+                    <input id="docs-link" name="docs-link" type="url" placeholder="https://" />
+                </div>
+
+                <button class="button button-primary" type="submit">Submit Request</button>
+            </form>
+        </div>
+      </div>
+    </main>
+
+    <script>
+        const name = sessionStorage.getItem("clientName");
+        if (name) {
+            document.getElementById("user-name").textContent = name;
+        }
+
+        const form = document.getElementById("intake-form");
+        const appList = document.getElementById("app-list");
+
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            
+            // Mock submission
+            const pName = form["project-name"].value;
+            const pAmount = form["amount"].value;
+            const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+            const newRow = document.createElement("tr");
+            newRow.style.borderBottom = "1px solid var(--border)";
+            newRow.innerHTML = `
+                <td style="padding: 1rem 0.5rem;">${today}</td>
+                <td style="padding: 1rem 0.5rem; font-weight: 600;">${pName}</td>
+                <td style="padding: 1rem 0.5rem;">$${Number(pAmount).toLocaleString()}</td>
+                <td style="padding: 1rem 0.5rem;"><span style="color: var(--primary); background: #f0fdf4; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700;">Received</span></td>
+                <td style="padding: 1rem 0.5rem; color: var(--muted);">Pending Review</td>
+            `;
+            
+            appList.insertBefore(newRow, appList.firstChild);
+            form.reset();
+            alert("Application submitted successfully!");
+        });
+    </script>
+  </body>
+</html>
