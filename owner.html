@@ -73,6 +73,7 @@
                                     <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Project</th>
                                     <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Amount</th>
                                     <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Status</th>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Notes for Client</th>
                                     <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Actions</th>
                                 </tr>
                             </thead>
@@ -138,10 +139,11 @@
               const row = document.createElement('tr');
               row.style.borderBottom = "1px solid var(--border)";
               
-              const statusOptions = ['Received', 'Reviewing', 'Approved', 'Funded', 'Denied'];
-              let optionsHtml = statusOptions.map(s => 
+              const optionsHtml = ['Received', 'Reviewing', 'Action Needed', 'Approved', 'Funded', 'Denied'].map(s => 
                   `<option value="${s}" ${req.status === s ? 'selected' : ''}>${s}</option>`
               ).join('');
+
+              const notes = req.adminNotes || "";
 
               row.innerHTML = `
                   <td style="padding: 1rem;">${req.date}</td>
@@ -152,6 +154,13 @@
                       <select onchange="updateStatus(${index}, this.value)" style="padding: 0.25rem; border-radius: 4px; border: 1px solid var(--border);">
                           ${optionsHtml}
                       </select>
+                  </td>
+                  <td style="padding: 1rem;">
+                      <textarea 
+                        onchange="updateNotes(${index}, this.value)" 
+                        style="width: 100%; padding: 0.25rem; border-radius: 4px; border: 1px solid var(--border); font-size: 0.85rem; resize: vertical;" 
+                        rows="2" 
+                        placeholder="Add notes for client...">${notes}</textarea>
                   </td>
                   <td style="padding: 1rem;">
                       <button onclick="deleteRequest(${index})" style="color: #dc2626; background: none; border: none; cursor: pointer; font-size: 0.8rem; text-decoration: underline;">Delete</button>
@@ -167,6 +176,14 @@
               requests[index].status = newStatus;
               localStorage.setItem("clientRequests", JSON.stringify(requests));
               // Optional: Show toast notification
+          }
+      }
+
+      function updateNotes(index, newNotes) {
+          const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
+          if (requests[index]) {
+              requests[index].adminNotes = newNotes;
+              localStorage.setItem("clientRequests", JSON.stringify(requests));
           }
       }
 

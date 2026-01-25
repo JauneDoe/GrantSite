@@ -142,12 +142,14 @@
                  if (req.status === "Reviewing") { statusColor = "#d97706"; statusBg = "#fffbeb"; }
                  if (req.status === "Action Needed") { statusColor = "#dc2626"; statusBg = "#fef2f2"; }
 
+                 const nextStep = req.adminNotes ? req.adminNotes : "Awaiting further updates from the team.";
+
                  row.innerHTML = `
                     <td style="padding: 1rem 0.5rem;">${req.date}</td>
                     <td style="padding: 1rem 0.5rem; font-weight: 600;">${req.projectName}</td>
                     <td style="padding: 1rem 0.5rem;">$${Number(req.amount).toLocaleString()}</td>
                     <td style="padding: 1rem 0.5rem;"><span style="color: ${statusColor}; background: ${statusBg}; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700;">${req.status}</span></td>
-                    <td style="padding: 1rem 0.5rem; color: var(--muted);">Running normally</td>
+                    <td style="padding: 1rem 0.5rem; color: var(--muted); max-width: 200px;">${nextStep}</td>
                 `;
                 appList.appendChild(row);
              });
