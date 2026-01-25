@@ -119,25 +119,66 @@
         const form = document.getElementById("intake-form");
         const appList = document.getElementById("app-list");
 
+        // Load existing requests from LocalStorage
+        const loadRequests = () => {
+             const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
+             // Filter for this user in a real app, but for now show all or just ours. 
+             // Since we don't have real auth, we'll just show the most recent ones stored.
+             
+             appList.innerHTML = ""; // Clear current mock data
+             
+             if (requests.length === 0) {
+                 appList.innerHTML = `<tr><td colspan="5" style="padding: 1rem; text-align: center; color: var(--muted);">No active applications found.</td></tr>`;
+                 return;
+             }
+
+             requests.forEach((req, index) => {
+                 const row = document.createElement("tr");
+                 row.style.borderBottom = "1px solid var(--border)";
+                 
+                 let statusColor = "var(--primary)";
+                 let statusBg = "#f0fdf4";
+                 
+                 if (req.status === "Reviewing") { statusColor = "#d97706"; statusBg = "#fffbeb"; }
+                 if (req.status === "Action Needed") { statusColor = "#dc2626"; statusBg = "#fef2f2"; }
+
+                 row.innerHTML = `
+                    <td style="padding: 1rem 0.5rem;">${req.date}</td>
+                    <td style="padding: 1rem 0.5rem; font-weight: 600;">${req.projectName}</td>
+                    <td style="padding: 1rem 0.5rem;">$${Number(req.amount).toLocaleString()}</td>
+                    <td style="padding: 1rem 0.5rem;"><span style="color: ${statusColor}; background: ${statusBg}; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700;">${req.status}</span></td>
+                    <td style="padding: 1rem 0.5rem; color: var(--muted);">Running normally</td>
+                `;
+                appList.appendChild(row);
+             });
+        };
+        
+        loadRequests();
+
         form.addEventListener("submit", (e) => {
             e.preventDefault();
             
-            // Mock submission
             const pName = form["project-name"].value;
             const pAmount = form["amount"].value;
             const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-            const newRow = document.createElement("tr");
-            newRow.style.borderBottom = "1px solid var(--border)";
-            newRow.innerHTML = `
-                <td style="padding: 1rem 0.5rem;">${today}</td>
-                <td style="padding: 1rem 0.5rem; font-weight: 600;">${pName}</td>
-                <td style="padding: 1rem 0.5rem;">$${Number(pAmount).toLocaleString()}</td>
-                <td style="padding: 1rem 0.5rem;"><span style="color: var(--primary); background: #f0fdf4; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700;">Received</span></td>
-                <td style="padding: 1rem 0.5rem; color: var(--muted);">Pending Review</td>
-            `;
             
-            appList.insertBefore(newRow, appList.firstChild);
+            // Create new request object
+            const newRequest = {
+                id: Date.now(),
+                clientName: sessionStorage.getItem("clientName") || "Unknown Client",
+                date: today,
+                projectName: pName,
+                amount: pAmount,
+                status: "Received",
+                description: form["description"].value
+            };
+
+            // Save to LocalStorage
+            const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
+            requests.unshift(newRequest); // Add to top
+            localStorage.setItem("clientRequests", JSON.stringify(requests));
+
+            loadRequests(); // Refresh table
             form.reset();
             alert("Application submitted successfully!");
         });

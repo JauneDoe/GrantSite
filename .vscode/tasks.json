@@ -26,6 +26,19 @@
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "edit"
+		},
+		{
+			"label": "Edit styles.css",
+			"type": "shell",
+			"command": "grep",
+			"args": [
+				"c:\\Users\\Harri\\Documents\\GitHub\\GrantSite\\styles.css",
+				"\n/* Dashboard Layout */\n.dashboard-container {\n    display: grid;\n    grid-template-columns: 250px 1fr;\n    min-height: calc(100vh - 80px);\n    background: #f8f9fa;\n}\n\n.dashboard-sidebar {\n    background: #fff;\n    border-right: 1px solid var(--border);\n    padding: 2rem 1.5rem;\n}\n\n.dashboard-nav {\n    display: flex;\n    flex-direction: column;\n    gap: 0.5rem;\n}\n\n.dash-link {\n    display: block;\n    padding: 0.75rem 1rem;\n    color: var(--muted);\n    text-decoration: none;\n    border-radius: 8px;\n    font-weight: 600;\n    transition: all 0.2s;\n}\n\n.dash-link:hover, .dash-link.active {\n    background: var(--surface);\n    color: var(--primary);\n}\n\n.dashboard-main {\n    padding: 2rem;\n    overflow-y: auto;\n}\n\n/* Hide sections that aren't active */\n.dash-view {\n    display: none;\n}\n.dash-view.active {\n    display: block;\n    animation: fadeIn 0.3s ease-out;\n}\n\n@media (max-width: 768px) {\n    .dashboard-container {\n        grid-template-columns: 1fr;\n    }\n}\n",
+				".footer {"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "edit"
 		}
 	]
 }

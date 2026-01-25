@@ -16,553 +16,259 @@
         window.location.href = "login.html";
       }
     </script>
-    <header class="site-header">
+    <header class="site-header" style="position: sticky; top: 0; z-index: 100;">
       <nav class="nav">
         <span class="logo">
           <span class="logo-mark">CGI</span>
-          <span class="logo-text">Site Content Manager</span>
+          <span class="logo-text">Admin Portal</span>
         </span>
         <div class="nav-actions">
-          <a class="button button-ghost" href="index.html">Open Homepage</a>
+          <a class="button button-ghost" href="index.html" target="_blank">View Live Site</a>
+          <button class="button button-ghost" onclick="location.href='index.html'">Sign Out</button>
         </div>
       </nav>
     </header>
 
-    <main class="section">
-      <div class="section-heading">
-        <h2>Update site content</h2>
-        <p>
-          Changes are saved locally in this browser and will update the homepage
-          automatically. No public link to this page is included.
-        </p>
-      </div>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="dashboard-sidebar">
+            <nav class="dashboard-nav">
+                <a class="dash-link active" onclick="switchTab('requests')">Client Requests</a>
+                <a class="dash-link" onclick="switchTab('editor')">Website Editor</a>
+                <a class="dash-link" onclick="switchTab('settings')">Settings</a>
+            </nav>
+            
+            <div style="margin-top: auto; padding-top: 2rem;">
+                <div class="card" style="padding: 1rem; background: var(--surface); border: none;">
+                    <small style="color: var(--muted); display: block; margin-bottom: 0.5rem;">Quick Stats</small>
+                    <strong style="font-size: 1.2rem; display: block;" id="total-raised">$0</strong>
+                    <small style="color: var(--primary);">Funds Secured</small>
+                </div>
+            </div>
+        </aside>
 
-      <form class="owner-form card" id="owner-form">
-        <h3>Branding</h3>
-        <div class="owner-grid">
-          <div class="form-field">
-            <label for="logoMark">Logo initials</label>
-            <input id="logoMark" data-edit-key="logoMark" value="CGI" />
-          </div>
-          <div class="form-field">
-            <label for="logoText">Logo text</label>
-            <input id="logoText" data-edit-key="logoText" value="Community Grants Initiative" />
-          </div>
-        </div>
+        <!-- Main Content Area -->
+        <main class="dashboard-main">
+            
+            <!-- VIEW 1: CLIENT REQUESTS (CRM) -->
+            <div id="view-requests" class="dash-view active">
+                <div class="section-heading" style="margin-bottom: 1.5rem;">
+                    <h2>Client Requests</h2>
+                    <p>Manage incoming grant applications and update their status.</p>
+                </div>
+                
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead style="background: #fdfdfd; border-bottom: 1px solid var(--border);">
+                                <tr>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Date</th>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Client</th>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Project</th>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Amount</th>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Status</th>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="crm-table-body">
+                                <!-- JS will populate this -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-        <h3>Color scheme</h3>
-        <div class="owner-grid">
-          <div class="form-field">
-            <label for="themeBg">Background</label>
-            <input id="themeBg" type="color" data-edit-key="themeBg" value="#fbf4ef" />
-          </div>
-          <div class="form-field">
-            <label for="themeSurface">Surface</label>
-            <input id="themeSurface" type="color" data-edit-key="themeSurface" value="#fffaf6" />
-          </div>
-          <div class="form-field">
-            <label for="themeText">Text</label>
-            <input id="themeText" type="color" data-edit-key="themeText" value="#3b2f2f" />
-          </div>
-          <div class="form-field">
-            <label for="themeMuted">Muted text</label>
-            <input id="themeMuted" type="color" data-edit-key="themeMuted" value="#6d5c54" />
-          </div>
-          <div class="form-field">
-            <label for="themePrimary">Primary</label>
-            <input id="themePrimary" type="color" data-edit-key="themePrimary" value="#c76a4a" />
-          </div>
-          <div class="form-field">
-            <label for="themePrimaryDark">Primary dark</label>
-            <input id="themePrimaryDark" type="color" data-edit-key="themePrimaryDark" value="#a7573b" />
-          </div>
-          <div class="form-field">
-            <label for="themeAccent">Accent</label>
-            <input id="themeAccent" type="color" data-edit-key="themeAccent" value="#f2b66d" />
-          </div>
-          <div class="form-field">
-            <label for="themeBorder">Border</label>
-            <input id="themeBorder" type="color" data-edit-key="themeBorder" value="#f0dfd4" />
-          </div>
-        </div>
+            <!-- VIEW 2: WEBSITE EDITOR (CMS) -->
+            <div id="view-editor" class="dash-view">
+                <div class="section-heading">
+                    <h2>Website Editor</h2>
+                    <p>Update text, images, and colors on the landing page.</p>
+                </div>
 
-        <h3>Navigation</h3>
-        <div class="owner-grid">
-          <div class="form-field">
-            <label for="navAbout">About link text</label>
-            <input id="navAbout" data-edit-key="navAbout" value="About Us" />
-          </div>
-          <div class="form-field">
-            <label for="navWho">Who we serve link text</label>
-            <input id="navWho" data-edit-key="navWho" value="Who We Serve" />
-          </div>
-          <div class="form-field">
-            <label for="navWork">Our work link text</label>
-            <input id="navWork" data-edit-key="navWork" value="Our Work" />
-          </div>
-          <div class="form-field">
-            <label for="navImpact">Impact link text</label>
-            <input id="navImpact" data-edit-key="navImpact" value="Impact" />
-          </div>
-          <div class="form-field">
-            <label for="navContact">Contact link text</label>
-            <input id="navContact" data-edit-key="navContact" value="Contact" />
-          </div>
-          <div class="form-field">
-            <label for="navCtaText">Nav CTA text</label>
-            <input id="navCtaText" data-edit-key="navCtaText" value="Support Our Mission" />
-          </div>
-        </div>
+                <form class="owner-form card" id="owner-form">
+                    <!-- BRANDING -->
+                    <details open style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                        <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Branding & Navigation</summary>
+                        <div class="owner-grid">
+                            <div class="form-field">
+                                <label for="logoMark">Logo initials</label>
+                                <input id="logoMark" data-edit-key="logoMark" value="CGI" />
+                            </div>
+                            <div class="form-field">
+                                <label for="logoText">Logo text</label>
+                                <input id="logoText" data-edit-key="logoText" value="Community Grants Initiative" />
+                            </div>
+                        </div>
+                    </details>
 
-        <h3>Hero</h3>
-        <div class="owner-grid">
-          <div class="form-field">
-            <label for="heroEyebrow">Eyebrow</label>
-            <input id="heroEyebrow" data-edit-key="heroEyebrow" value="Building opportunity together" />
-          </div>
-          <div class="form-field">
-            <label for="heroTitle">Main headline</label>
-            <textarea id="heroTitle" rows="2" data-edit-key="heroTitle">We connect resources to the people and places that need them most.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="heroSubtitle">Subtitle</label>
-            <textarea id="heroSubtitle" rows="2" data-edit-key="heroSubtitle">Our mission is to secure and deliver grant-funded support that strengthens neighborhoods, families, and local leaders—so every community can thrive.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="heroPrimaryText">Primary button text</label>
-            <input id="heroPrimaryText" data-edit-key="heroPrimaryText" value="Support Our Mission" />
-          </div>
-          <div class="form-field">
-            <label for="heroPrimaryLink">Primary button link</label>
-            <input id="heroPrimaryLink" data-edit-key="heroPrimaryLink" value="#cta" />
-          </div>
-          <div class="form-field">
-            <label for="heroSecondaryText">Secondary button text</label>
-            <input id="heroSecondaryText" data-edit-key="heroSecondaryText" value="Learn More" />
-          </div>
-          <div class="form-field">
-            <label for="heroSecondaryLink">Secondary button link</label>
-            <input id="heroSecondaryLink" data-edit-key="heroSecondaryLink" value="#what" />
-          </div>
-        </div>
+                    <!-- FUNDRAISING -->
+                    <details open style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                        <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Success Tracker</summary>
+                         <p class="form-help">
+                          Option 1: Enter values manually.<br>
+                          Option 2: Paste a "Published to Web" Google Sheet CSV link.
+                        </p>
+                        <div class="owner-grid">
+                           <div class="form-field">
+                            <label for="fundraisingCurrent">Current Verified ($)</label>
+                            <input type="number" id="fundraisingCurrent" data-edit-key="fundraisingCurrent" placeholder="e.g. 50000" />
+                           </div>
+                           <div class="form-field">
+                            <label for="fundraisingGoal">Target Amount ($)</label>
+                            <input type="number" id="fundraisingGoal" data-edit-key="fundraisingGoal" placeholder="e.g. 100000" />
+                           </div>
+                           <div class="form-field full-width">
+                            <label for="fundraisingSheetUrl">Google Sheet CSV Link</label>
+                            <input id="fundraisingSheetUrl" data-edit-key="fundraisingSheetUrl" placeholder="https://docs.google.com/.../pub?output=csv" />
+                           </div>
+                        </div>
+                    </details>
 
-        <h3>Hero card</h3>
-        <div class="owner-grid">
-          <div class="form-field">
-            <label for="heroCardTitle">Card title</label>
-            <input id="heroCardTitle" data-edit-key="heroCardTitle" value="Short mission statement" />
-          </div>
-          <div class="form-field">
-            <label for="heroCardBody">Card text</label>
-            <textarea id="heroCardBody" rows="2" data-edit-key="heroCardBody">We champion equitable access to funding and tools that help communities build resilient futures.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="statOneNumber">Stat 1 number</label>
-            <input id="statOneNumber" data-edit-key="statOneNumber" value="50+" />
-          </div>
-          <div class="form-field">
-            <label for="statOneLabel">Stat 1 label</label>
-            <input id="statOneLabel" data-edit-key="statOneLabel" value="partners engaged" />
-          </div>
-          <div class="form-field">
-            <label for="statTwoNumber">Stat 2 number</label>
-            <input id="statTwoNumber" data-edit-key="statTwoNumber" value="$1M+" />
-          </div>
-          <div class="form-field">
-            <label for="statTwoLabel">Stat 2 label</label>
-            <input id="statTwoLabel" data-edit-key="statTwoLabel" value="grant goals for 2026" />
-          </div>
-          <div class="form-field">
-            <label for="heroCardPrimaryText">Card primary button text</label>
-            <input id="heroCardPrimaryText" data-edit-key="heroCardPrimaryText" value="Start a Conversation" />
-          </div>
-          <div class="form-field">
-            <label for="heroCardPrimaryLink">Card primary button link</label>
-            <input id="heroCardPrimaryLink" data-edit-key="heroCardPrimaryLink" value="#contact" />
-          </div>
-          <div class="form-field">
-            <label for="heroCardSecondaryText">Card secondary button text</label>
-            <input id="heroCardSecondaryText" data-edit-key="heroCardSecondaryText" value="See Community Impact" />
-          </div>
-          <div class="form-field">
-            <label for="heroCardSecondaryLink">Card secondary button link</label>
-            <input id="heroCardSecondaryLink" data-edit-key="heroCardSecondaryLink" value="#impact" />
-          </div>
-        </div>
+                    <!-- COLORS -->
+                    <details style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                        <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Theme & Colors</summary>
+                        <div class="owner-grid">
+                          <div class="form-field">
+                            <label for="themeBg">Background Color</label>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                              <input type="color" id="themeBg" data-edit-key="themeBg" value="#fffaf6" style="height: 40px; width: 60px; padding: 0;" />
+                            </div>
+                          </div>
+                          <!-- Add other color fields if needed, simplified for this view -->
+                          <div class="form-field">
+                             <label for="themePrimary">Primary Color</label>
+                             <input type="color" id="themePrimary" data-edit-key="themePrimary" value="#d97706" style="height: 40px; width: 60px; padding: 0;" />
+                          </div>
+                        </div>
+                    </details>
+                    
+                    <!-- HERO TEXT (Condensed) -->
+                    <details style="margin-bottom: 1rem;">
+                        <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Hero Section Text</summary>
+                         <div class="owner-grid">
+                              <div class="form-field full-width">
+                                <label for="heroTitle">Main Headline</label>
+                                <textarea id="heroTitle" rows="2" data-edit-key="heroTitle">We connect resources to the people and places that need them most.</textarea>
+                              </div>
+                               <div class="form-field full-width">
+                                <label for="heroSubtitle">Subtitle</label>
+                                <textarea id="heroSubtitle" rows="2" data-edit-key="heroSubtitle">Our mission is... so every community can thrive.</textarea>
+                              </div>
+                         </div>
+                    </details>
 
-        <h3>About</h3>
-        <div class="owner-grid">
-          <div class="form-field">
-            <label for="aboutTitle">Section title</label>
-            <input id="aboutTitle" data-edit-key="aboutTitle" value="About us" />
-          </div>
-          <div class="form-field">
-            <label for="aboutIntro">Intro text</label>
-            <textarea id="aboutIntro" rows="2" data-edit-key="aboutIntro">We are a community-centered initiative focused on expanding access to resources, knowledge, and partnerships that help neighborhoods thrive.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="aboutStoryTitle">Story title</label>
-            <input id="aboutStoryTitle" data-edit-key="aboutStoryTitle" value="Our story" />
-          </div>
-          <div class="form-field">
-            <label for="aboutStoryBody">Story text</label>
-            <textarea id="aboutStoryBody" rows="2" data-edit-key="aboutStoryBody">Built in collaboration with local stakeholders, our organization works to identify priorities, align funding, and deliver programs that reflect the lived experiences of the people we serve.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="aboutLeadTitle">Leadership title</label>
-            <input id="aboutLeadTitle" data-edit-key="aboutLeadTitle" value="Founder & leadership" />
-          </div>
-          <div class="form-field">
-            <label for="aboutLeadBody">Leadership text</label>
-            <textarea id="aboutLeadBody" rows="2" data-edit-key="aboutLeadBody">Our leadership brings years of experience building and supporting community programs.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="aboutValuesTitle">Values title</label>
-            <input id="aboutValuesTitle" data-edit-key="aboutValuesTitle" value="Our values" />
-          </div>
-          <div class="form-field">
-            <label for="valueOneLabel">Value 1 label</label>
-            <input id="valueOneLabel" data-edit-key="valueOneLabel" value="Equity:" />
-          </div>
-          <div class="form-field">
-            <label for="valueOneBody">Value 1 text</label>
-            <input id="valueOneBody" data-edit-key="valueOneBody" value="We focus resources where gaps are widest." />
-          </div>
-          <div class="form-field">
-            <label for="valueTwoLabel">Value 2 label</label>
-            <input id="valueTwoLabel" data-edit-key="valueTwoLabel" value="Access:" />
-          </div>
-          <div class="form-field">
-            <label for="valueTwoBody">Value 2 text</label>
-            <input id="valueTwoBody" data-edit-key="valueTwoBody" value="We remove barriers to funding and support." />
-          </div>
-          <div class="form-field">
-            <label for="valueThreeLabel">Value 3 label</label>
-            <input id="valueThreeLabel" data-edit-key="valueThreeLabel" value="Empowerment:" />
-          </div>
-          <div class="form-field">
-            <label for="valueThreeBody">Value 3 text</label>
-            <input id="valueThreeBody" data-edit-key="valueThreeBody" value="We elevate community-led solutions." />
-          </div>
-          <div class="form-field">
-            <label for="valueFourLabel">Value 4 label</label>
-            <input id="valueFourLabel" data-edit-key="valueFourLabel" value="Sustainability:" />
-          </div>
-          <div class="form-field">
-            <label for="valueFourBody">Value 4 text</label>
-            <input id="valueFourBody" data-edit-key="valueFourBody" value="We invest in long-term impact." />
-          </div>
-        </div>
+                    <div class="owner-actions" style="position: sticky; bottom: 1rem; background: white; padding: 1rem; border-top: 1px solid var(--border); box-shadow: 0 -4px 12px rgba(0,0,0,0.05); z-index: 50;">
+                      <button class="button button-primary" type="submit">Save Changes to Site</button>
+                      <button class="button button-ghost" type="button" id="reset-edits">Reset Defaults</button>
+                    </div>
+                </form>
+            </div>
 
-        <h3>Who we serve</h3>
-        <div class="owner-grid">
-          <div class="form-field">
-            <label for="whoTitle">Section title</label>
-            <input id="whoTitle" data-edit-key="whoTitle" value="Who we serve" />
-          </div>
-          <div class="form-field">
-            <label for="whoIntro">Intro text</label>
-            <textarea id="whoIntro" rows="2" data-edit-key="whoIntro">We work alongside community members, grassroots organizations, and local leaders who are creating solutions close to home.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="whoOneTitle">Card 1 title</label>
-            <input id="whoOneTitle" data-edit-key="whoOneTitle" value="Families and youth" />
-          </div>
-          <div class="form-field">
-            <label for="whoOneBody">Card 1 text</label>
-            <textarea id="whoOneBody" rows="2" data-edit-key="whoOneBody">Supporting access to education, safe spaces, and essential services for families and young people.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="whoTwoTitle">Card 2 title</label>
-            <input id="whoTwoTitle" data-edit-key="whoTwoTitle" value="Neighborhood partners" />
-          </div>
-          <div class="form-field">
-            <label for="whoTwoBody">Card 2 text</label>
-            <textarea id="whoTwoBody" rows="2" data-edit-key="whoTwoBody">Collaborating with trusted local groups to amplify impact and reach underserved areas.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="whoThreeTitle">Card 3 title</label>
-            <input id="whoThreeTitle" data-edit-key="whoThreeTitle" value="Community leaders" />
-          </div>
-          <div class="form-field">
-            <label for="whoThreeBody">Card 3 text</label>
-            <textarea id="whoThreeBody" rows="2" data-edit-key="whoThreeBody">Equipping leaders with resources, training, and funding to advance local priorities.</textarea>
-          </div>
-        </div>
+            <!-- VIEW 3: SETTINGS -->
+            <div id="view-settings" class="dash-view">
+                 <div class="section-heading">
+                    <h2>Admin Settings</h2>
+                </div>
+                <div class="card">
+                    <p>Future account settings and password management will go here.</p>
+                </div>
+            </div>
 
-        <h3>Our work / programs</h3>
-        <div class="owner-grid">
-          <div class="form-field">
-            <label for="workTitle">Section title</label>
-            <input id="workTitle" data-edit-key="workTitle" value="Our work / programs" />
-          </div>
-          <div class="form-field">
-            <label for="workIntro">Intro text</label>
-            <textarea id="workIntro" rows="2" data-edit-key="workIntro">We focus on broad, community-informed areas of work so we can respond to evolving needs while staying grounded in impact.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="workOneTitle">Card 1 title</label>
-            <input id="workOneTitle" data-edit-key="workOneTitle" value="Community Support" />
-          </div>
-          <div class="form-field">
-            <label for="workOneBody">Card 1 text</label>
-            <textarea id="workOneBody" rows="2" data-edit-key="workOneBody">We strengthen neighborhood-based efforts with funding, coordination, and hands-on support that helps people meet immediate needs. Our approach is collaborative and tailored to the realities of each community.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="workTwoTitle">Card 2 title</label>
-            <input id="workTwoTitle" data-edit-key="workTwoTitle" value="Education & Resources" />
-          </div>
-          <div class="form-field">
-            <label for="workTwoBody">Card 2 text</label>
-            <textarea id="workTwoBody" rows="2" data-edit-key="workTwoBody">We provide tools, learning opportunities, and practical guidance that expand access to information and services. These resources are designed to be clear, relevant, and easy to use.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="workThreeTitle">Card 3 title</label>
-            <input id="workThreeTitle" data-edit-key="workThreeTitle" value="Outreach & Advocacy" />
-          </div>
-          <div class="form-field">
-            <label for="workThreeBody">Card 3 text</label>
-            <textarea id="workThreeBody" rows="2" data-edit-key="workThreeBody">We amplify community voices and connect partners to strengthen local advocacy. Through outreach, we build visibility for priorities that deserve sustained attention.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="workFourTitle">Card 4 title</label>
-            <input id="workFourTitle" data-edit-key="workFourTitle" value="Capacity Building" />
-          </div>
-          <div class="form-field">
-            <label for="workFourBody">Card 4 text</label>
-            <textarea id="workFourBody" rows="2" data-edit-key="workFourBody">We invest in the people and systems that keep programs moving forward. That includes training, planning support, and tools that improve long-term effectiveness.</textarea>
-          </div>
-        </div>
-
-        <h3>Community impact gallery</h3>
-        <div class="owner-grid">
-          <div class="form-field">
-            <label for="impactTitle">Section title</label>
-            <input id="impactTitle" data-edit-key="impactTitle" value="Community impact" />
-          </div>
-          <div class="form-field">
-            <label for="impactIntro">Intro text</label>
-            <textarea id="impactIntro" rows="2" data-edit-key="impactIntro">Our approach is informed by years of hands-on community work, grounded in what local partners say they need most.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="impactOneImage">Image 1 URL</label>
-            <input id="impactOneImage" data-edit-key="impactOneImage" value="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80" />
-          </div>
-          <div class="form-field">
-            <label for="impactOneLabel">Image 1 label</label>
-            <input id="impactOneLabel" data-edit-key="impactOneLabel" value="Community support in action" />
-          </div>
-          <div class="form-field">
-            <label for="impactOneTitle">Image 1 title</label>
-            <input id="impactOneTitle" data-edit-key="impactOneTitle" value="Neighborhood resource drives" />
-          </div>
-          <div class="form-field">
-            <label for="impactOneBody">Image 1 description</label>
-            <textarea id="impactOneBody" rows="2" data-edit-key="impactOneBody">Community-led events delivered supplies, referrals, and on-the-spot support to families facing urgent needs.</textarea>
-          </div>
-
-          <div class="form-field">
-            <label for="impactTwoImage">Image 2 URL</label>
-            <input id="impactTwoImage" data-edit-key="impactTwoImage" value="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80" />
-          </div>
-          <div class="form-field">
-            <label for="impactTwoLabel">Image 2 label</label>
-            <input id="impactTwoLabel" data-edit-key="impactTwoLabel" value="Trusted local partners" />
-          </div>
-          <div class="form-field">
-            <label for="impactTwoTitle">Image 2 title</label>
-            <input id="impactTwoTitle" data-edit-key="impactTwoTitle" value="Partnerships with local leaders" />
-          </div>
-          <div class="form-field">
-            <label for="impactTwoBody">Image 2 description</label>
-            <textarea id="impactTwoBody" rows="2" data-edit-key="impactTwoBody">We collaborate with neighborhood partners to coordinate services, amplify local priorities, and sustain programs year-round.</textarea>
-          </div>
-
-          <div class="form-field">
-            <label for="impactThreeImage">Image 3 URL</label>
-            <input id="impactThreeImage" data-edit-key="impactThreeImage" value="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80" />
-          </div>
-          <div class="form-field">
-            <label for="impactThreeLabel">Image 3 label</label>
-            <input id="impactThreeLabel" data-edit-key="impactThreeLabel" value="Families and youth programs" />
-          </div>
-          <div class="form-field">
-            <label for="impactThreeTitle">Image 3 title</label>
-            <input id="impactThreeTitle" data-edit-key="impactThreeTitle" value="Youth and family engagement" />
-          </div>
-          <div class="form-field">
-            <label for="impactThreeBody">Image 3 description</label>
-            <textarea id="impactThreeBody" rows="2" data-edit-key="impactThreeBody">Hands-on programs create safe, welcoming spaces where families and youth can learn, connect, and thrive.</textarea>
-          </div>
-
-          <div class="form-field">
-            <label for="impactFourImage">Image 4 URL</label>
-            <input id="impactFourImage" data-edit-key="impactFourImage" value="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=900&q=80" />
-          </div>
-          <div class="form-field">
-            <label for="impactFourLabel">Image 4 label</label>
-            <input id="impactFourLabel" data-edit-key="impactFourLabel" value="Capacity building" />
-          </div>
-          <div class="form-field">
-            <label for="impactFourTitle">Image 4 title</label>
-            <input id="impactFourTitle" data-edit-key="impactFourTitle" value="Sustained community investment" />
-          </div>
-          <div class="form-field">
-            <label for="impactFourBody">Image 4 description</label>
-            <textarea id="impactFourBody" rows="2" data-edit-key="impactFourBody">Capacity-building initiatives support long-term growth with training, tools, and shared learning across partners.</textarea>
-          </div>
-        </div>
-
-        <h3>Support our mission</h3>
-        <div class="owner-grid">
-          <div class="form-field">
-            <label for="ctaTitle">CTA title</label>
-            <input id="ctaTitle" data-edit-key="ctaTitle" value="Support our mission" />
-          </div>
-          <div class="form-field">
-            <label for="ctaBody">CTA text</label>
-            <textarea id="ctaBody" rows="2" data-edit-key="ctaBody">Your support fuels community-led solutions. Join us as we expand access to grants and long-term resources.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="ctaPrimaryText">Primary button text</label>
-            <input id="ctaPrimaryText" data-edit-key="ctaPrimaryText" value="Donate Today" />
-          </div>
-          <div class="form-field">
-            <label for="ctaPrimaryLink">Primary button link</label>
-            <input id="ctaPrimaryLink" data-edit-key="ctaPrimaryLink" value="#" />
-          </div>
-          <div class="form-field">
-            <label for="ctaSecondaryText">Secondary button text</label>
-            <input id="ctaSecondaryText" data-edit-key="ctaSecondaryText" value="Partner With Us" />
-          </div>
-          <div class="form-field">
-            <label for="ctaSecondaryLink">Secondary button link</label>
-            <input id="ctaSecondaryLink" data-edit-key="ctaSecondaryLink" value="#" />
-          </div>
-        </div>
-
-        <h3>Contact</h3>
-        <div class="owner-grid">
-          <div class="form-field">
-            <label for="contactTitle">Contact heading</label>
-            <input id="contactTitle" data-edit-key="contactTitle" value="Contact / connect" />
-          </div>
-          <div class="form-field">
-            <label for="contactIntro">Contact intro</label>
-            <textarea id="contactIntro" rows="2" data-edit-key="contactIntro">We’d love to hear from you. Share a quick note and we’ll follow up.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="contactNameLabel">Name label</label>
-            <input id="contactNameLabel" data-edit-key="contactNameLabel" value="Name" />
-          </div>
-          <div class="form-field">
-            <label for="contactEmailLabel">Email label</label>
-            <input id="contactEmailLabel" data-edit-key="contactEmailLabel" value="Email" />
-          </div>
-          <div class="form-field">
-            <label for="contactMessageLabel">Message label</label>
-            <input id="contactMessageLabel" data-edit-key="contactMessageLabel" value="Message" />
-          </div>
-          <div class="form-field">
-            <label for="contactButtonText">Submit button text</label>
-            <input id="contactButtonText" data-edit-key="contactButtonText" value="Send Message" />
-          </div>
-          <div class="form-field">
-            <label for="contactEmail">Email display</label>
-            <input id="contactEmail" data-edit-key="contactEmail" value="hello@communitygrants.org" />
-          </div>
-          <div class="form-field">
-            <label for="contactEmailHref">Email link (mailto:)</label>
-            <input id="contactEmailHref" data-edit-key="contactEmailHref" value="mailto:hello@communitygrants.org" />
-          </div>
-          <div class="form-field">
-            <label for="contactEmailTitle">Email heading</label>
-            <input id="contactEmailTitle" data-edit-key="contactEmailTitle" value="Email" />
-          </div>
-          <div class="form-field">
-            <label for="contactPartnerTitle">Partner heading</label>
-            <input id="contactPartnerTitle" data-edit-key="contactPartnerTitle" value="Partner With Us" />
-          </div>
-          <div class="form-field">
-            <label for="contactPartnerBody">Partner text</label>
-            <textarea id="contactPartnerBody" rows="2" data-edit-key="contactPartnerBody">Interested in collaborating or funding a shared initiative? Let’s connect.</textarea>
-          </div>
-          <div class="form-field">
-            <label for="contactPartnerButtonText">Partner button text</label>
-            <input id="contactPartnerButtonText" data-edit-key="contactPartnerButtonText" value="Support Our Mission" />
-          </div>
-          <div class="form-field">
-            <label for="contactPartnerButtonLink">Partner button link</label>
-            <input id="contactPartnerButtonLink" data-edit-key="contactPartnerButtonLink" value="#cta" />
-          </div>
-        </div>
-
-        <h3>Fundraising / Success Tracker</h3>
-        <p class="form-help">
-          Use these values to show total funds raised for clients (Status) vs your yearly target (Goal).<br>
-          Option 1: Enter values manually below.<br>
-          Option 2: Paste a "Published to Web" Google Sheet CSV link to sync automatically.
-        </p>
-        <div class="owner-grid">
-           <div class="form-field">
-            <label for="fundraisingCurrent">Current Amount ($)</label>
-            <input type="number" id="fundraisingCurrent" data-edit-key="fundraisingCurrent" placeholder="e.g. 50000" />
-           </div>
-           <div class="form-field">
-            <label for="fundraisingGoal">Goal Amount ($)</label>
-            <input type="number" id="fundraisingGoal" data-edit-key="fundraisingGoal" placeholder="e.g. 100000" />
-           </div>
-           <div class="form-field full-width">
-            <label for="fundraisingSheetUrl">Google Sheet CSV Link (Optional)</label>
-            <input id="fundraisingSheetUrl" data-edit-key="fundraisingSheetUrl" placeholder="https://docs.google.com/.../pub?output=csv" />
-            <span class="help-text">Overrides manual values. File must have 'Current' in A2 and 'Goal' in B2.</span>
-           </div>
-        </div>
-
-        <div class="owner-actions">
-          <button class="button button-primary" type="submit">Save changes</button>
-          <button class="button button-ghost" type="button" id="reset-edits">Reset to defaults</button>
-        </div>
-      </form>
-    </main>
+        </main>
+    </div>
 
     <script>
+      // TAB SWITCHING LOGIC
+      function switchTab(tabName) {
+          // Hide all views
+          document.querySelectorAll('.dash-view').forEach(el => el.classList.remove('active'));
+          // Show selected view
+          document.getElementById('view-' + tabName).classList.add('active');
+          
+          // Update nav state
+          document.querySelectorAll('.dash-link').forEach(el => el.classList.remove('active'));
+          // Simple visual active state (index based for simplicity or match text)
+          const links = document.querySelectorAll('.dash-link');
+          if(tabName === 'requests') links[0].classList.add('active');
+          if(tabName === 'editor') links[1].classList.add('active');
+          if(tabName === 'settings') links[2].classList.add('active');
+      }
+
+      // CRM LOGIC: LOAD REQUESTS
+      function loadCRM() {
+          const tableBody = document.getElementById('crm-table-body');
+          const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
+          
+          if (requests.length === 0) {
+              tableBody.innerHTML = `<tr><td colspan="6" style="padding: 2rem; text-align: center; color: var(--muted);">No requests found yet.</td></tr>`;
+              return;
+          }
+
+          tableBody.innerHTML = '';
+          requests.forEach((req, index) => {
+              const row = document.createElement('tr');
+              row.style.borderBottom = "1px solid var(--border)";
+              
+              const statusOptions = ['Received', 'Reviewing', 'Approved', 'Funded', 'Denied'];
+              let optionsHtml = statusOptions.map(s => 
+                  `<option value="${s}" ${req.status === s ? 'selected' : ''}>${s}</option>`
+              ).join('');
+
+              row.innerHTML = `
+                  <td style="padding: 1rem;">${req.date}</td>
+                  <td style="padding: 1rem; font-weight: 600;">${req.clientName}</td>
+                  <td style="padding: 1rem;">${req.projectName}</td>
+                  <td style="padding: 1rem;">$${Number(req.amount).toLocaleString()}</td>
+                  <td style="padding: 1rem;">
+                      <select onchange="updateStatus(${index}, this.value)" style="padding: 0.25rem; border-radius: 4px; border: 1px solid var(--border);">
+                          ${optionsHtml}
+                      </select>
+                  </td>
+                  <td style="padding: 1rem;">
+                      <button onclick="deleteRequest(${index})" style="color: #dc2626; background: none; border: none; cursor: pointer; font-size: 0.8rem; text-decoration: underline;">Delete</button>
+                  </td>
+              `;
+              tableBody.appendChild(row);
+          });
+      }
+
+      function updateStatus(index, newStatus) {
+          const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
+          if (requests[index]) {
+              requests[index].status = newStatus;
+              localStorage.setItem("clientRequests", JSON.stringify(requests));
+              // Optional: Show toast notification
+          }
+      }
+
+      function deleteRequest(index) {
+          if (confirm("Are you sure you want to delete this record?")) {
+              const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
+              requests.splice(index, 1);
+              localStorage.setItem("clientRequests", JSON.stringify(requests));
+              loadCRM();
+          }
+      }
+
+      // Initialize
+      loadCRM();
+
+
+      // SITE EDITOR LOGIC (Existing Code Adapted)
       const form = document.getElementById("owner-form");
       const resetButton = document.getElementById("reset-edits");
-
       const storedEdits = localStorage.getItem("siteEdits");
       const edits = storedEdits ? JSON.parse(storedEdits) : {};
-
-      const root = document.documentElement;
-      const themeMap = {
-        themeBg: "--bg",
-        themeSurface: "--surface",
-        themeText: "--text",
-        themeMuted: "--muted",
-        themePrimary: "--primary",
-        themePrimaryDark: "--primary-dark",
-        themeAccent: "--accent",
-        themeBorder: "--border",
-      };
-
-      Object.entries(themeMap).forEach(([key, cssVar]) => {
-        if (Object.prototype.hasOwnProperty.call(edits, key) && edits[key]) {
-          root.style.setProperty(cssVar, edits[key]);
-        }
-      });
+      
+      // Update quick stat
+      if(edits.fundraisingCurrent) {
+           document.getElementById("total-raised").textContent = "$" + Number(edits.fundraisingCurrent).toLocaleString();
+      }
 
       document.querySelectorAll("[data-edit-key]").forEach((input) => {
         const key = input.dataset.editKey;
         if (Object.prototype.hasOwnProperty.call(edits, key)) {
           input.value = edits[key];
-        }
-      });
-
-      document.querySelectorAll("[data-edit-key]").forEach((input) => {
-        if (themeMap[input.dataset.editKey]) {
-          input.addEventListener("input", () => {
-            root.style.setProperty(themeMap[input.dataset.editKey], input.value);
-          });
         }
       });
 
@@ -577,8 +283,10 @@
       });
 
       resetButton.addEventListener("click", () => {
-        localStorage.removeItem("siteEdits");
-        location.reload();
+        if(confirm("Reset all text and colors to original defaults?")) {
+            localStorage.removeItem("siteEdits");
+            location.reload();
+        }
       });
     </script>
   </body>
