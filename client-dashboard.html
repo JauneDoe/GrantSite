@@ -44,7 +44,7 @@
                             <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Project Name</th>
                             <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Request Amount</th>
                             <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Status</th>
-                            <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Next Step</th>
+                            <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Messages</th>
                         </tr>
                     </thead>
                     <tbody style="font-size: 0.95rem;" id="app-list">
@@ -110,6 +110,21 @@
       </div>
     </main>
 
+    <!-- Message Modal -->
+    <dialog id="msg-modal">
+        <div class="modal-header">
+            <h3>Support Chat</h3>
+            <button class="close-button" onclick="closeMessages()">&times;</button>
+        </div>
+        <div class="modal-body" id="msg-body">
+            <!-- Messages go here -->
+        </div>
+        <div class="modal-footer">
+            <input type="text" id="msg-input" class="chat-input" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') sendMessage()">
+            <button class="button button-primary" onclick="sendMessage()">Send</button>
+        </div>
+    </dialog>
+
     <script>
         const name = sessionStorage.getItem("clientName");
         if (name) {
@@ -142,19 +157,104 @@
                  if (req.status === "Reviewing") { statusColor = "#d97706"; statusBg = "#fffbeb"; }
                  if (req.status === "Action Needed") { statusColor = "#dc2626"; statusBg = "#fef2f2"; }
 
-                 const nextStep = req.adminNotes ? req.adminNotes : "Awaiting further updates from the team.";
+                 let msgCount = req.messages ? req.messages.length : 0;
+                 if (req.adminNotes) msgCount++; // Count legacy note
+                 
+                 const btnText = msgCount > 0 ? `View Messages (${msgCount})` : "Ask Question";
+                 const btnStyle = msgCount > 0 
+                    ? "background: var(--surface); border: 1px solid var(--primary); color: var(--primary);" 
+                    : "background: transparent; color: var(--muted); border: 1px solid var(--border);";
 
                  row.innerHTML = `
                     <td style="padding: 1rem 0.5rem;">${req.date}</td>
                     <td style="padding: 1rem 0.5rem; font-weight: 600;">${req.projectName}</td>
                     <td style="padding: 1rem 0.5rem;">$${Number(req.amount).toLocaleString()}</td>
                     <td style="padding: 1rem 0.5rem;"><span style="color: ${statusColor}; background: ${statusBg}; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700;">${req.status}</span></td>
-                    <td style="padding: 1rem 0.5rem; color: var(--muted); max-width: 200px;">${nextStep}</td>
+                    <td style="padding: 1rem 0.5rem;">
+                        <button style="cursor: pointer; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem; ${btnStyle}" onclick="openMessages(${index})">
+                           ${btnText}
+                        </button>
+                    </td>
                 `;
                 appList.appendChild(row);
              });
         };
         
+        // CHAT LOGIC
+        let currentReqIndex = -1;
+
+        function openMessages(index) {
+            currentReqIndex = index;
+            const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
+            const req = requests[index];
+            const modal = document.getElementById('msg-modal');
+            const body = document.getElementById('msg-body');
+            
+            body.innerHTML = '';
+
+            let msgs = req.messages || [];
+            if (msgs.length === 0 && req.adminNotes) {
+                msgs = [{ sender: 'Admin', text: req.adminNotes, time: req.date }];
+            }
+
+            if (msgs.length === 0) {
+                body.innerHTML = `<p style="text-align:center; color: var(--muted); padding: 1rem;">No messages yet. Send a message to your consultant.</p>`;
+            } else {
+                msgs.forEach(m => {
+                    const isMe = m.sender === 'Client';
+                    const div = document.createElement('div');
+                    div.className = `message ${isMe ? 'sent' : 'received'}`;
+                    // Admin messages might need distinct styling if we want, but 'received' is fine
+                    div.innerHTML = `
+                        <strong style="font-size: 0.75rem; display: block; margin-bottom: 2px;">${m.sender}</strong>
+                        ${m.text}
+                        <span class="message-meta">${m.time}</span>
+                    `;
+                    body.appendChild(div);
+                });
+            }
+            
+            modal.showModal();
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function closeMessages() {
+            document.getElementById('msg-modal').close();
+            currentReqIndex = -1;
+        }
+
+        function sendMessage() {
+            if (currentReqIndex === -1) return;
+            
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
+            const req = requests[currentReqIndex];
+            
+            if (!req.messages) req.messages = [];
+            
+            // Legacy migration
+            if (req.messages.length === 0 && req.adminNotes) {
+                req.messages.push({ sender: 'Admin', text: req.adminNotes, time: req.date });
+                delete req.adminNotes; 
+            }
+
+            const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            req.messages.push({
+                sender: 'Client',
+                text: text,
+                time: now
+            });
+
+            localStorage.setItem("clientRequests", JSON.stringify(requests));
+            input.value = '';
+            
+            openMessages(currentReqIndex);
+            loadRequests();
+        }
+
         loadRequests();
 
         form.addEventListener("submit", (e) => {

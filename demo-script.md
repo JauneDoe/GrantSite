@@ -48,9 +48,9 @@
 *   **Action:** Click the **"Client Requests"** tab.
 *   "Look right here. You can see the request 'Alex' just submitted for $50,000."
 *   "You can view the details. Let's say you've reviewed it and it looks good. You can change the status from **'Received'** to **'Reviewing'** or **'Approved'**."
-*   "Or, if you need more info (like missing tax docs), you can set it to **'Action Needed'** and type a note in the **'Notes for Client'** box."
+*   "Or, if you need more info (like missing tax docs), you can set it to **'Action Needed'** and click **'Start Chat'**. You can send a direct message like 'Please upload your 2024 returns'."
 *   *(Change the status to 'Reviewing' in the dropdown).*
-*   "When you do this, if Alex logs back into his dashboard, he sees the new status and your specific instructions instantly."
+*   "When you do this, if Alex logs back into his dashboard, he sees the new status and clicks **'View Messages'** to reply to you directly."
 
 ---
 

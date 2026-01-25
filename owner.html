@@ -73,7 +73,7 @@
                                     <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Project</th>
                                     <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Amount</th>
                                     <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Status</th>
-                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Notes for Client</th>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Messages</th>
                                     <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Actions</th>
                                 </tr>
                             </thead>
@@ -97,6 +97,21 @@
 
         </main>
     </div>
+
+    <!-- Message Modal -->
+    <dialog id="msg-modal">
+        <div class="modal-header">
+            <h3 id="msg-client-name">Chat</h3>
+            <button class="close-button" onclick="closeMessages()">&times;</button>
+        </div>
+        <div class="modal-body" id="msg-body">
+            <!-- Messages go here -->
+        </div>
+        <div class="modal-footer">
+            <input type="text" id="msg-input" class="chat-input" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') sendMessage()">
+            <button class="button button-primary" onclick="sendMessage()">Send</button>
+        </div>
+    </dialog>
 
     <script>
       // TAB SWITCHING LOGIC
@@ -143,7 +158,11 @@
                   `<option value="${s}" ${req.status === s ? 'selected' : ''}>${s}</option>`
               ).join('');
 
-              const notes = req.adminNotes || "";
+              // Count messages
+              let msgCount = req.messages ? req.messages.length : 0;
+              if (req.adminNotes) msgCount++; // Count legacy note
+              
+              const btnText = msgCount > 0 ? `View Messages (${msgCount})` : "Start Chat";
 
               row.innerHTML = `
                   <td style="padding: 1rem;">${req.date}</td>
@@ -156,11 +175,9 @@
                       </select>
                   </td>
                   <td style="padding: 1rem;">
-                      <textarea 
-                        onchange="updateNotes(${index}, this.value)" 
-                        style="width: 100%; padding: 0.25rem; border-radius: 4px; border: 1px solid var(--border); font-size: 0.85rem; resize: vertical;" 
-                        rows="2" 
-                        placeholder="Add notes for client...">${notes}</textarea>
+                      <button class="button button-ghost" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;" onclick="openMessages(${index})">
+                        ${btnText}
+                      </button>
                   </td>
                   <td style="padding: 1rem;">
                       <button onclick="deleteRequest(${index})" style="color: #dc2626; background: none; border: none; cursor: pointer; font-size: 0.8rem; text-decoration: underline;">Delete</button>
@@ -170,22 +187,86 @@
           });
       }
 
-      function updateStatus(index, newStatus) {
+      // CHAT LOGIC
+      let currentReqIndex = -1;
+
+      function openMessages(index) {
+          currentReqIndex = index;
           const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
-          if (requests[index]) {
-              requests[index].status = newStatus;
-              localStorage.setItem("clientRequests", JSON.stringify(requests));
-              // Optional: Show toast notification
+          const req = requests[index];
+          const modal = document.getElementById('msg-modal');
+          const body = document.getElementById('msg-body');
+          
+          document.getElementById('msg-client-name').textContent = "Chat with " + req.clientName;
+          body.innerHTML = '';
+
+          // Migration: Show legacy admin note if exists
+          let msgs = req.messages || [];
+          if (msgs.length === 0 && req.adminNotes) {
+             msgs = [{ sender: 'Admin', text: req.adminNotes, time: req.date }];
+             // We don't save this migration permanently to avoid dupes unless they send a new msg, 
+             // but strictly for display it's fine.
           }
+
+          if (msgs.length === 0) {
+              body.innerHTML = `<p style="text-align:center; color: var(--muted); padding: 1rem;">No messages yet. Start the conversation!</p>`;
+          } else {
+              msgs.forEach(m => {
+                 const isMe = m.sender === 'Admin';
+                 const div = document.createElement('div');
+                 div.className = `message ${isMe ? 'sent' : 'received'}`;
+                 div.innerHTML = `
+                    ${m.text}
+                    <span class="message-meta">${m.time}</span>
+                 `;
+                 body.appendChild(div);
+              });
+          }
+          
+          modal.showModal();
+          // Scroll to bottom
+          body.scrollTop = body.scrollHeight;
       }
 
-      function updateNotes(index, newNotes) {
-          const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
-          if (requests[index]) {
-              requests[index].adminNotes = newNotes;
-              localStorage.setItem("clientRequests", JSON.stringify(requests));
-          }
+      function closeMessages() {
+          document.getElementById('msg-modal').close();
+          currentReqIndex = -1;
       }
+
+      function sendMessage() {
+          if (currentReqIndex === -1) return;
+          
+          const input = document.getElementById('msg-input');
+          const text = input.value.trim();
+          if (!text) return;
+
+          const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
+          const req = requests[currentReqIndex];
+          
+          if (!req.messages) req.messages = [];
+          
+          // Legacy migration on first write
+          if (req.messages.length === 0 && req.adminNotes) {
+              req.messages.push({ sender: 'Admin', text: req.adminNotes, time: req.date });
+              delete req.adminNotes; // Clear legacy
+          }
+
+          const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          req.messages.push({
+              sender: 'Admin',
+              text: text,
+              time: now
+          });
+
+          localStorage.setItem("clientRequests", JSON.stringify(requests));
+          input.value = '';
+          
+          // Reload view
+          openMessages(currentReqIndex);
+          loadCRM(); // Update button count
+      }
+
+      function updateStatus(index, newStatus) {
 
       function deleteRequest(index) {
           if (confirm("Are you sure you want to delete this record?")) {
