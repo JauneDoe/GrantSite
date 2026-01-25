@@ -431,6 +431,24 @@
       const storedEdits = localStorage.getItem("siteEdits");
       const edits = storedEdits ? JSON.parse(storedEdits) : {};
 
+      const root = document.documentElement;
+      const themeMap = {
+        themeBg: "--bg",
+        themeSurface: "--surface",
+        themeText: "--text",
+        themeMuted: "--muted",
+        themePrimary: "--primary",
+        themePrimaryDark: "--primary-dark",
+        themeAccent: "--accent",
+        themeBorder: "--border",
+      };
+
+      Object.entries(themeMap).forEach(([key, cssVar]) => {
+        if (Object.prototype.hasOwnProperty.call(edits, key) && edits[key]) {
+          root.style.setProperty(cssVar, edits[key]);
+        }
+      });
+
       document.querySelectorAll("[data-edit-key]").forEach((element) => {
         const key = element.dataset.editKey;
         const attrKey = element.dataset.editAttrKey || key;

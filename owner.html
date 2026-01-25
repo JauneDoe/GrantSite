@@ -50,6 +50,42 @@
           </div>
         </div>
 
+        <h3>Color scheme</h3>
+        <div class="owner-grid">
+          <div class="form-field">
+            <label for="themeBg">Background</label>
+            <input id="themeBg" type="color" data-edit-key="themeBg" value="#fbf4ef" />
+          </div>
+          <div class="form-field">
+            <label for="themeSurface">Surface</label>
+            <input id="themeSurface" type="color" data-edit-key="themeSurface" value="#fffaf6" />
+          </div>
+          <div class="form-field">
+            <label for="themeText">Text</label>
+            <input id="themeText" type="color" data-edit-key="themeText" value="#3b2f2f" />
+          </div>
+          <div class="form-field">
+            <label for="themeMuted">Muted text</label>
+            <input id="themeMuted" type="color" data-edit-key="themeMuted" value="#6d5c54" />
+          </div>
+          <div class="form-field">
+            <label for="themePrimary">Primary</label>
+            <input id="themePrimary" type="color" data-edit-key="themePrimary" value="#c76a4a" />
+          </div>
+          <div class="form-field">
+            <label for="themePrimaryDark">Primary dark</label>
+            <input id="themePrimaryDark" type="color" data-edit-key="themePrimaryDark" value="#a7573b" />
+          </div>
+          <div class="form-field">
+            <label for="themeAccent">Accent</label>
+            <input id="themeAccent" type="color" data-edit-key="themeAccent" value="#f2b66d" />
+          </div>
+          <div class="form-field">
+            <label for="themeBorder">Border</label>
+            <input id="themeBorder" type="color" data-edit-key="themeBorder" value="#f0dfd4" />
+          </div>
+        </div>
+
         <h3>Navigation</h3>
         <div class="owner-grid">
           <div class="form-field">
@@ -475,10 +511,36 @@
       const storedEdits = localStorage.getItem("siteEdits");
       const edits = storedEdits ? JSON.parse(storedEdits) : {};
 
+      const root = document.documentElement;
+      const themeMap = {
+        themeBg: "--bg",
+        themeSurface: "--surface",
+        themeText: "--text",
+        themeMuted: "--muted",
+        themePrimary: "--primary",
+        themePrimaryDark: "--primary-dark",
+        themeAccent: "--accent",
+        themeBorder: "--border",
+      };
+
+      Object.entries(themeMap).forEach(([key, cssVar]) => {
+        if (Object.prototype.hasOwnProperty.call(edits, key) && edits[key]) {
+          root.style.setProperty(cssVar, edits[key]);
+        }
+      });
+
       document.querySelectorAll("[data-edit-key]").forEach((input) => {
         const key = input.dataset.editKey;
         if (Object.prototype.hasOwnProperty.call(edits, key)) {
           input.value = edits[key];
+        }
+      });
+
+      document.querySelectorAll("[data-edit-key]").forEach((input) => {
+        if (themeMap[input.dataset.editKey]) {
+          input.addEventListener("input", () => {
+            root.style.setProperty(themeMap[input.dataset.editKey], input.value);
+          });
         }
       });
 
