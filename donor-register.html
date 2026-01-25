@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donor Registration</title>
+    <meta name="description" content="Create a donor account to track your impact." />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav">
+        <a class="logo" href="index.html">
+          <span class="logo-mark">CGI</span>
+          <span class="logo-text">Community Grants Initiative</span>
+        </a>
+        <div class="nav-actions">
+          <a class="button button-ghost" href="login.html">Sign In</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="section">
+      <div class="section-heading">
+        <h2>Create Donor Account</h2>
+        <p>Track your donations and download tax documents.</p>
+      </div>
+
+      <form class="card contact-form" id="donor-register-form">
+        <div class="form-field">
+          <label for="name">Full Name</label>
+          <input id="name" name="name" type="text" required placeholder="For tax receipt purposes" />
+        </div>
+        <div class="form-field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" required />
+        </div>
+        <div class="form-field">
+          <label for="new-password">Create Password</label>
+          <input id="new-password" name="new-password" type="password" autocomplete="new-password" required minlength="8" />
+        </div>
+        <div class="form-field">
+          <label for="confirm-password">Confirm Password</label>
+          <input id="confirm-password" name="confirm-password" type="password" autocomplete="new-password" required />
+        </div>
+        <button class="button button-primary" type="submit">Create Account</button>
+      </form>
+    </main>
+
+    <script>
+      const form = document.getElementById("donor-register-form");
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const p1 = form["new-password"].value;
+        const p2 = form["confirm-password"].value;
+
+        if (p1 !== p2) {
+          alert("Passwords do not match.");
+          return;
+        }
+
+        // Simulating account creation
+        // In a real app, this would send data to a secure server.
+        // For this prototype, we'll just redirect to the dashboard.
+        
+        sessionStorage.setItem("donorAccess", "granted");
+        sessionStorage.setItem("donorName", form.name.value);
+        window.location.href = "donor-dashboard.html";
+      });
+    </script>
+  </body>
+</html>

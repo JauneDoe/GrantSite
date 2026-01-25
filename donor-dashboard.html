@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donor Dashboard</title>
+    <meta name="description" content="View your donation history." />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <script>
+      if (sessionStorage.getItem("donorAccess") !== "granted") {
+        window.location.href = "login.html";
+      }
+    </script>
+    <header class="site-header">
+      <nav class="nav">
+        <span class="logo">
+          <span class="logo-mark">CGI</span>
+          <span class="logo-text">Donor Portal</span>
+        </span>
+        <div class="nav-actions">
+            <span style="font-size: 0.9rem; margin-right: 1rem;">Welcome, <span id="user-name">Donor</span></span>
+          <a class="button button-ghost" href="index.html">Sign Out</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="section">
+      <div class="section-heading">
+        <h2>Your Impact</h2>
+        <p>Thank you for supporting our community. Below is your donation history for the current tax year.</p>
+      </div>
+
+      <div class="card">
+        <h3>2026 Donation History</h3>
+        <div style="overflow-x: auto; margin-top: 1rem;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border);">
+                        <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Date</th>
+                        <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Transaction ID</th>
+                        <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Amount</th>
+                        <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Status</th>
+                        <th style="padding: 0.75rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.9rem;">Receipt</th>
+                    </tr>
+                </thead>
+                <tbody style="font-size: 0.95rem;">
+                   <tr style="border-bottom: 1px solid var(--border);">
+                       <td style="padding: 1rem 0.5rem;">Jan 15, 2026</td>
+                       <td style="padding: 1rem 0.5rem; font-family: monospace;">TXN-8842-A</td>
+                       <td style="padding: 1rem 0.5rem; font-weight: 700;">$500.00</td>
+                       <td style="padding: 1rem 0.5rem; color: var(--primary);">Completed</td>
+                       <td style="padding: 1rem 0.5rem;"><a href="#" style="color: var(--primary); text-decoration: underline;">Download PDF</a></td>
+                   </tr>
+                   <!-- This is mock data for the prototype -->
+                   <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 1rem 0.5rem;">Dec 20, 2025</td>
+                    <td style="padding: 1rem 0.5rem; font-family: monospace;">TXN-1293-B</td>
+                    <td style="padding: 1rem 0.5rem; font-weight: 700;">$250.00</td>
+                    <td style="padding: 1rem 0.5rem; color: var(--primary);">Completed</td>
+                    <td style="padding: 1rem 0.5rem;"><a href="#" style="color: var(--primary); text-decoration: underline;">Download PDF</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 600; color: var(--muted);">Total Tax Deductible (2026)</span>
+            <span style="font-size: 1.5rem; font-weight: 700;">$500.00</span>
+        </div>
+      </div>
+      
+      <div style="margin-top: 2rem; text-align: center;">
+          <a href="index.html#cta" class="button button-primary">Make a New Donation</a>
+      </div>
+    </main>
+
+    <script>
+        const name = sessionStorage.getItem("donorName");
+        if (name) {
+            document.getElementById("user-name").textContent = name;
+        }
+    </script>
+  </body>
+</html>
