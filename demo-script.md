@@ -1,73 +1,83 @@
- # Website Demo Walkthrough Script
-**For: Grant Consultancy Client Presentation**
+# Client Demo Script: Community Grants Initiative Platform
 
-## 1. Introduction
-"Hi [Client Name], today I'm going to walk you through the new custom built digital platform for your Grant Consultancy. We've built this to handle three main things for you:
-1.  **Attract Clients:** A professional public face that explains your value.
-2.  **Streamline Intake:** A client portal where businesses can apply and track their status.
-3.  **Simplify Management:** An admin dashboard for you to manage those requests and easily edit the website without code."
+**Goal:** Demonstrate the seamless interaction between a Potential Client and the Grant Consultant (Admin), highlighting ease of access, real-time communication, and transparency.
 
----
-
-## 2. The Public Experience (Landing Page)
-**Action:** Open `index.html` (Home Page).
-
-**Talking Points:**
-*   "This is what the public sees. We've framed the language around 'Grant Consulting' and 'Getting Qualified'."
-*   **Hero Section:** "Clear call to action immediately. 'Get Qualified' leads them to register."
-*   **Funds Secured Tracker:** "Scroll down slightly. We have a live progress bar showing how much funding you've secured. This builds trust instantly."
-*   **Customizable:** "Every piece of text, the colors, and the images you see here can be changed by you in seconds, which I'll show you at the end."
+**Setup:**
+1.  Open **Two Browser Windows** (or one normal window and one Incognito/Private window).
+    *   **Window 1 (Left):** Will be the **Visitor / Client**.
+    *   **Window 2 (Right):** Will be the **Consultant (Owner)**.
+2.  Open `index.html` in *Window 1*.
+3.  Open `owner.html` in *Window 2*.
 
 ---
 
-## 3. The Client Experience (Registration & Dashboard)
-**Action:** Click the "Get Qualified" or "Client Portal" button (or navigate to `client-register.html`).
+### Phase 1: The Visitor Experience (Window 1)
 
-**Step A: Registration**
-*   "Let's pretend I'm a small business owner named 'Alex' who needs funding."
-*   "I click register. notice we ask for **EIN** and **Organization Name**—this ensures you get serious inquiries."
-*   *(Fill out the form with dummy data and click 'Create Account')*
+**Narrative:** "First, let's look at how a new organization engages with us. They land on our public site..."
 
-**Step B: The Dashboard (`client-dashboard.html`)**
-*   "Once registered, I land here—my private Client Dashboard."
-*   **Intake Form:** "On the left, I have a simple form to submitting a new funding request. I'll ask for $50,000 for 'Startup Capital'." *(Submit the form)*.
-*   **Status Tracking:** "On the right (or bottom), I can see my application status is now **'Received'**. This stops clients from calling you constantly just to ask 'did you get my application?'—they can just check here."
+1.  **Landing Page:**
+    *   Scroll through the `index.html` homepage.
+    *   Highlight the **"Client Success Tracker"** progress bar (shows transparency).
+    *   Show sections: About Us, Who We Serve, Impact Stories.
+    *   **Action:** Click the **"Get Qualified"** button in the top right or the **"Start Your Request"** button in the main Hero card.
+    *   *Observation: This now instantly directs them to the Client Dashboard.*
 
----
-
-## 4. The Admin Experience (Owner Portal)
-**Action:** Open `login.html` (or sign out). Log in with:
-*   **Username:** `Owner`
-*   **Password:** `Easyas123`
-
-**Step A: The Admin Dashboard (`owner.html`)**
-*   "Now, I'm logging in as **YOU** (the Owner)."
-*   "Welcome to your Admin Portal. It's clean, modern, and focused."
-
-**Step B: CRM / Client Request Management**
-*   **Action:** Click the **"Client Requests"** tab.
-*   "Look right here. You can see the request 'Alex' just submitted for $50,000."
-*   "You can view the details. Let's say you've reviewed it and it looks good. You can change the status from **'Received'** to **'Reviewing'** or **'Approved'**."
-*   "Or, if you need more info (like missing tax docs), you can set it to **'Action Needed'** and click **'Start Chat'**. You can send a direct message like 'Please upload your 2024 returns'."
-*   *(Change the status to 'Reviewing' in the dropdown).*
-*   "When you do this, if Alex logs back into his dashboard, he sees the new status and clicks **'View Messages'** to reply to you directly."
+2.  **Client Dashboard (Intake):**
+    *   You are now on `client-dashboard.html`.
+    *   **Enter Name:** If prompted or simply changing the name, imagine you are "Community Care Center".
+    *   **Intake Form:** Scroll down to the "Start New Request" form.
+    *   **Action:** Fill out a quick request:
+        *   **Project Name:** "After-School STEM Program"
+        *   **Amount:** $15,000
+        *   **Needed By:** Pick a date.
+        *   **Description:** "Funding for science kits."
+        *   **Credit Score:** Select "Good".
+    *   **Click "Submit Request".**
+    *   *Result:* The table above updates immediately with the new request status ("Received").
 
 ---
 
-## 5. Total Control (The Website Editor)
-**Action:** In the Sidebar, click **"Website Editor"** (opens `editor.html`).
+### Phase 2: The Consultant Review (Window 2)
 
-**Talking Points:**
-*   "Finally, we know your business evolves. You shouldn't need to hire a developer just to change a sentence or a photo."
-*   "This is your dedicated **Website Editor**."
-    *   **Colors:** "Want to rebrand? Click 'Theme & Colors' and pick a new primary color."
-    *   **Text:** "Want to change the headline? Just type it here."
-    *   **Photos:** "Open the 'Community Impact' section. You can paste new image links and change the captions yourself."
-*   "Hit 'Save', and the public website is instantly updated."
+**Narrative:** "Now, let's switch hats. I am the Grant Consultant reviewing this."
+
+1.  **Owner Dashboard:**
+    *   Switch to `owner.html`.
+    *   **Notifications:** Point out the red badge on the "Message Center" tab on the left sidebar (if any) or simply navigate to the **Message Center**.
+2.  **Dashboard Overview:**
+    *   Click the **"Dashboard"** tab.
+    *   Notice the "Recently Submitted Applications" table. You should see the "After-School STEM Program" request there.
+    *   **Action:** Change the Status dropdown from "Received" to **"Reviewing"** or **"Action Needed"**.
+    *   *Sync:* Switch back to *Window 1* briefly to show the Client sees this status update instantly (if they refresh or re-check).
 
 ---
 
-## 6. Closing / Feedback
-"So, we have a complete loop: **New clients find you -> They apply online -> You manage them in your dashboard.**"
+### Phase 3: Real-Time Communication (Split View)
 
-"Why don't you take the link, try creating a test client account yourself, and let me know if there are any specific fields you want added to the intake form?"
+**Narrative:** "This is the most powerful feature. We stop email clutter and communicate directly in the portal."
+
+1.  **Initiate Chat (Window 2 - Owner):**
+    *   Go to **Message Center** tab.
+    *   Select **"Proposed Client"** (or the name appearing in the list).
+    *   **Action:** Type: *"Hello! I reviewed your STEM proposal. Can you upload your 501(c)(3) letter?"*
+    *   **Click Send.**
+
+2.  **Receive Chat (Window 1 - Client):**
+    *   Switch to the Client window.
+    *   **Notification:** Point out the **Red Badge** appearing on the "Message Center" sidebar tab.
+    *   **Action:** Click "Message Center".
+    *   See the message from the Consultant.
+
+3.  **Typing Indicators & File Sharing:**
+    *   **Action (Client):** Start typing in the chat box: *"Sure, let me find that..."*
+    *   **Look at Window 2 (Owner):** See the *"Client is typing..."* indicator appear in real-time.
+    *   **Action (Client):** Click the **Paperclip Icon (📎)**.
+    *   Select any dummy file (or cancel, the mock works either way).
+    *   *Result:* A message appears: *"Shared a file: [Filename]"*.
+    *   **Action (Owner):** See the file link appear instantly.
+
+---
+
+### Phase 4: Closing
+
+**Narrative:** "This platform unifies the entire lifecycle: Intake, Status Tracking, and Document Collection. No lost emails, total transparency."
