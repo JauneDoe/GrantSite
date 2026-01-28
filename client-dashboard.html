@@ -294,7 +294,7 @@
             if (input.files && input.files[0]) {
                 const file = input.files[0];
                 const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
-                const msg = `Shared a file: <br><a href="#" style="color: var(--primary); text-decoration: underline;">📄 ${file.name}</a>`;
+                const msg = `Shared a file: <br><a href="#" style="text-decoration: underline;">📄 ${file.name}</a>`;
                 
                 saveMessage(clientName, msg);
                 input.value = ''; // Reset
@@ -334,7 +334,7 @@
                  row.style.borderBottom = "1px solid var(--border)";
                  
                  let statusColor = "var(--primary)";
-                 let statusBg = "#f0fdf4";
+                 let statusBg = "#eff6ff";
                  
                  if (req.status === "Reviewing") { statusColor = "#d97706"; statusBg = "#fffbeb"; }
                  if (req.status === "Action Needed") { statusColor = "#dc2626"; statusBg = "#fef2f2"; }

@@ -327,7 +327,7 @@
       function handleAdminFileUpload(input) {
           if (input.files && input.files[0] && activeChatClient) {
                 const file = input.files[0];
-                const msg = `Shared a file: <br><a href="#" style="color: #fff; text-decoration: underline;">📄 ${file.name}</a>`;
+                const msg = `Shared a file: <br><a href="#" style="text-decoration: underline;">📄 ${file.name}</a>`;
                 saveAdminMsg(msg);
                 input.value = '';
           }
