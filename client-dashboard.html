@@ -219,6 +219,14 @@
                         <p id="pref-message" style="font-size: 0.9rem; color: var(--muted);"></p>
                     </div>
                 </div>
+
+                <!-- Danger Zone: Delete Account -->
+                <div class="card" style="grid-column: 1 / -1; border: 2px solid #fca5a5; background: #fef2f2;">
+                    <h3 style="color: #dc2626;">Danger Zone</h3>
+                    <p style="color: var(--muted); margin-top: 0.75rem; margin-bottom: 1.5rem;">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                    <button type="button" class="button" onclick="deleteClientAccount()" style="background: #dc2626; color: white; border: none;">Delete My Account</button>
+                </div>
+                </div>
             </div>
         </main>
     </div>
@@ -536,6 +544,48 @@
             document.getElementById("pref-messages").checked = prefs.messages;
             document.getElementById("pref-news").checked = prefs.news;
         });
+
+        function deleteClientAccount() {
+            const clientName = sessionStorage.getItem("clientName");
+            
+            if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+                return;
+            }
+            
+            const password = prompt("Please enter your password to confirm account deletion:");
+            if (!password) {
+                return;
+            }
+            
+            const clientAccounts = JSON.parse(localStorage.getItem("clientAccounts") || "[]");
+            const userAccount = clientAccounts.find(acc => acc.name === clientName);
+            
+            if (!userAccount || userAccount.password !== password) {
+                alert("Password is incorrect. Account deletion cancelled.");
+                return;
+            }
+            
+            if (!confirm("This is your final warning. Your account and all data will be permanently deleted. Continue?")) {
+                return;
+            }
+            
+            // Remove account from storage
+            const updatedAccounts = clientAccounts.filter(acc => acc.name !== clientName);
+            localStorage.setItem("clientAccounts", JSON.stringify(updatedAccounts));
+            
+            // Remove any stored data associated with this client
+            localStorage.removeItem("clientPreferences");
+            
+            // Clear session
+            sessionStorage.removeItem("clientAccess");
+            sessionStorage.removeItem("clientName");
+            sessionStorage.removeItem("clientEmail");
+            sessionStorage.removeItem("clientBusiness");
+            sessionStorage.removeItem("clientCreated");
+            
+            alert("Your account has been permanently deleted.");
+            window.location.href = "index.html";
+        }
     </script>
   </body>
 </html>
