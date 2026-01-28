@@ -1,4 +1,4 @@
-# Client Demo Script: Community Grants Initiative Platform
+# Client Demo Script: 2xclusive Solutions Consulting, LLC Platform
 
 **Goal:** Demonstrate the seamless interaction between a Potential Client and the Grant Consultant (Admin), highlighting ease of access, real-time communication, and transparency.
 
