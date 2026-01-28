@@ -34,6 +34,9 @@
                 <a class="dash-link" onclick="switchClientTab('messages')" id="nav-msgs">
                     Message Center
                 </a>
+                <a class="dash-link" onclick="switchClientTab('settings')">
+                    Settings
+                </a>
             </nav>
         </aside>
 
@@ -65,7 +68,7 @@
                            <td style="padding: 1rem 0.5rem;">Jan 20, 2026</td>
                            <td style="padding: 1rem 0.5rem; font-weight: 600;">Community Garden Expansion</td>
                            <td style="padding: 1rem 0.5rem;">$25,000</td>
-                           <td style="padding: 1rem 0.5rem;"><span style="color: #d97706; background: #fffbeb; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700;">Under Review</span></td>
+                           <td style="padding: 1rem 0.5rem;"><span style="color: #2563eb; background: #dbeafe; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700;">Under Review</span></td>
                        </tr>
                     </tbody>
                 </table>
@@ -141,8 +144,83 @@
                  <button class="button button-primary" onclick="sendClientMessage()">Send</button>
              </div>
         </div>
-    </div>
-    </main>
+            </div>
+
+            <!-- TAB 3: SETTINGS -->
+            <div id="view-settings" class="dash-view">
+                <div class="section-heading">
+                    <h2>Account Settings</h2>
+                    <p>Manage your account and security preferences.</p>
+                </div>
+
+                <!-- Account Information -->
+                <div class="card" style="grid-column: 1 / -1; margin-bottom: 2rem;">
+                    <h3>Account Information</h3>
+                    <div style="margin-top: 1.5rem;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Full Name</label>
+                                <p id="settings-name" style="font-weight: 600; font-size: 1rem;">-</p>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Email Address</label>
+                                <p id="settings-email" style="font-weight: 600; font-size: 1rem;">-</p>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Business Name</label>
+                                <p id="settings-business" style="font-weight: 600; font-size: 1rem;">-</p>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Account Created</label>
+                                <p id="settings-created" style="font-weight: 600; font-size: 1rem;">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Management -->
+                <div class="card" style="grid-column: 1 / -1; margin-bottom: 2rem;">
+                    <h3>Password & Security</h3>
+                    <form id="password-form" style="margin-top: 1.5rem;">
+                        <div class="form-field">
+                            <label for="current-password">Current Password</label>
+                            <input id="current-password" type="password" placeholder="Enter current password" required />
+                        </div>
+                        <div class="form-field">
+                            <label for="new-password">New Password</label>
+                            <input id="new-password" type="password" placeholder="Enter new password" required />
+                        </div>
+                        <div class="form-field">
+                            <label for="confirm-password">Confirm Password</label>
+                            <input id="confirm-password" type="password" placeholder="Confirm new password" required />
+                        </div>
+                        <button type="submit" class="button button-primary">Update Password</button>
+                        <p id="password-message" style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--muted);"></p>
+                    </form>
+                </div>
+
+                <!-- Preferences -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>Notification Preferences</h3>
+                    <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                            <input type="checkbox" id="pref-updates" checked style="cursor: pointer;" />
+                            <span>Email me application status updates</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                            <input type="checkbox" id="pref-messages" checked style="cursor: pointer;" />
+                            <span>Email me new messages from consultants</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                            <input type="checkbox" id="pref-news" checked style="cursor: pointer;" />
+                            <span>Email me news and funding opportunities</span>
+                        </label>
+                        <button type="button" class="button button-primary" onclick="savePreferences()" style="align-self: flex-start; margin-top: 1rem;">Save Preferences</button>
+                        <p id="pref-message" style="font-size: 0.9rem; color: var(--muted);"></p>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
@@ -178,6 +256,10 @@
 
                 renderClientChat();
                 updateClientBadge(); // Update UI
+            }
+            if(tabName === 'settings') {
+                navLinks[2].classList.add('active');
+                loadAccountSettings();
             }
         }
 
@@ -336,7 +418,7 @@
                  let statusColor = "var(--primary)";
                  let statusBg = "#eff6ff";
                  
-                 if (req.status === "Reviewing") { statusColor = "#d97706"; statusBg = "#fffbeb"; }
+                 if (req.status === "Reviewing") { statusColor = "#2563eb"; statusBg = "#dbeafe"; }
                  if (req.status === "Action Needed") { statusColor = "#dc2626"; statusBg = "#fef2f2"; }
 
                  row.innerHTML = `
@@ -377,6 +459,82 @@
             loadRequests(); // Refresh table
             form.reset();
             alert("Application submitted successfully!");
+        });
+
+        // SETTINGS FUNCTIONS
+        function loadAccountSettings() {
+            const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
+            const clientEmail = sessionStorage.getItem("clientEmail") || "not.provided@example.com";
+            const clientBusiness = sessionStorage.getItem("clientBusiness") || "Not specified";
+            const clientCreated = sessionStorage.getItem("clientCreated") || new Date().toLocaleDateString();
+            
+            document.getElementById("settings-name").textContent = clientName;
+            document.getElementById("settings-email").textContent = clientEmail;
+            document.getElementById("settings-business").textContent = clientBusiness;
+            document.getElementById("settings-created").textContent = clientCreated;
+        }
+
+        document.getElementById("password-form")?.addEventListener("submit", function(e) {
+            e.preventDefault();
+            
+            const currentPwd = document.getElementById("current-password").value;
+            const newPwd = document.getElementById("new-password").value;
+            const confirmPwd = document.getElementById("confirm-password").value;
+            const messageEl = document.getElementById("password-message");
+            
+            if (newPwd !== confirmPwd) {
+                messageEl.textContent = "New passwords do not match.";
+                messageEl.style.color = "#dc2626";
+                return;
+            }
+            
+            if (newPwd.length < 6) {
+                messageEl.textContent = "Password must be at least 6 characters.";
+                messageEl.style.color = "#dc2626";
+                return;
+            }
+            
+            const storedAccounts = JSON.parse(sessionStorage.getItem("clientAccounts") || "[]");
+            const userAccount = storedAccounts.find(acc => acc.name === sessionStorage.getItem("clientName"));
+            
+            if (!userAccount || userAccount.password !== currentPwd) {
+                messageEl.textContent = "Current password is incorrect.";
+                messageEl.style.color = "#dc2626";
+                return;
+            }
+            
+            userAccount.password = newPwd;
+            sessionStorage.setItem("clientAccounts", JSON.stringify(storedAccounts));
+            
+            messageEl.textContent = "Password updated successfully!";
+            messageEl.style.color = "#16a34a";
+            
+            this.reset();
+            setTimeout(() => messageEl.textContent = "", 3000);
+        });
+
+        function savePreferences() {
+            const prefs = {
+                updates: document.getElementById("pref-updates").checked,
+                messages: document.getElementById("pref-messages").checked,
+                news: document.getElementById("pref-news").checked
+            };
+            
+            localStorage.setItem("clientPreferences", JSON.stringify(prefs));
+            
+            const prefMessage = document.getElementById("pref-message");
+            prefMessage.textContent = "Preferences saved successfully!";
+            prefMessage.style.color = "#16a34a";
+            
+            setTimeout(() => prefMessage.textContent = "", 2000);
+        }
+
+        // Load preferences on page load
+        window.addEventListener("load", function() {
+            const prefs = JSON.parse(localStorage.getItem("clientPreferences") || '{"updates":true,"messages":true,"news":true}');
+            document.getElementById("pref-updates").checked = prefs.updates;
+            document.getElementById("pref-messages").checked = prefs.messages;
+            document.getElementById("pref-news").checked = prefs.news;
         });
     </script>
   </body>
