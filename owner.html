@@ -456,8 +456,8 @@
           const accountsList = document.getElementById('client-accounts-list');
           const noAccountsMsg = document.getElementById('no-accounts-msg');
           
-          // Get all client accounts from sessionStorage
-          const clientAccounts = JSON.parse(sessionStorage.getItem('clientAccounts') || '[]');
+          // Get all client accounts from localStorage
+          const clientAccounts = JSON.parse(localStorage.getItem('clientAccounts') || '[]');
           
           if (clientAccounts.length === 0) {
               accountsList.innerHTML = '';
@@ -505,12 +505,12 @@
               return;
           }
           
-          const clientAccounts = JSON.parse(sessionStorage.getItem('clientAccounts') || '[]');
+          const clientAccounts = JSON.parse(localStorage.getItem('clientAccounts') || '[]');
           const account = clientAccounts.find(acc => acc.name === clientName);
           
           if (account) {
               account.password = newPassword;
-              sessionStorage.setItem('clientAccounts', JSON.stringify(clientAccounts));
+              localStorage.setItem('clientAccounts', JSON.stringify(clientAccounts));
               alert(`Password for ${clientName} has been reset successfully!`);
           } else {
               alert('Account not found.');

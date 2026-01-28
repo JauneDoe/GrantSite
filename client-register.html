@@ -110,7 +110,7 @@
         const created = new Date().toLocaleDateString();
         
         // Save account info for admin to see
-        const clientAccounts = JSON.parse(sessionStorage.getItem('clientAccounts') || '[]');
+        const clientAccounts = JSON.parse(localStorage.getItem('clientAccounts') || '[]');
         
         // Check if account already exists
         const existingAccount = clientAccounts.find(acc => acc.name === displayName || acc.email === email);
@@ -122,7 +122,7 @@
                 password: p1,
                 created: created
             });
-            sessionStorage.setItem('clientAccounts', JSON.stringify(clientAccounts));
+            localStorage.setItem('clientAccounts', JSON.stringify(clientAccounts));
         }
         
         sessionStorage.setItem("clientAccess", "granted");

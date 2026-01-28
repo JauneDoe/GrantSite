@@ -494,7 +494,7 @@
                 return;
             }
             
-            const storedAccounts = JSON.parse(sessionStorage.getItem("clientAccounts") || "[]");
+            const storedAccounts = JSON.parse(localStorage.getItem("clientAccounts") || "[]");
             const userAccount = storedAccounts.find(acc => acc.name === sessionStorage.getItem("clientName"));
             
             if (!userAccount || userAccount.password !== currentPwd) {
@@ -504,7 +504,7 @@
             }
             
             userAccount.password = newPwd;
-            sessionStorage.setItem("clientAccounts", JSON.stringify(storedAccounts));
+            localStorage.setItem("clientAccounts", JSON.stringify(storedAccounts));
             
             messageEl.textContent = "Password updated successfully!";
             messageEl.style.color = "#16a34a";
