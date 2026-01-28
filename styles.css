@@ -569,8 +569,8 @@ a {
   justify-content: space-between;
   gap: 2rem;
   padding: 3.5rem 7vw 4rem;
-  background: linear-gradient(135deg, #6f3d2a, #a65a3f);
-  color: #fffaf3;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #ffffff;
 }
 
 .cta-content h2 {
@@ -592,7 +592,7 @@ a {
 .cta .button-ghost {
   background: transparent;
   border-color: rgba(255, 255, 255, 0.4);
-  color: #fffaf3;
+  color: #ffffff;
 }
 
 .site-footer {

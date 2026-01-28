@@ -103,12 +103,34 @@
         // Simulating account creation
         // In a real app, this would send data to a secure server.
         
-        sessionStorage.setItem("clientAccess", "granted");
-        
         const isOrg = document.querySelector('input[name="account-type"][value="organization"]').checked;
         const displayName = isOrg && form["org-name"].value ? form["org-name"].value : form.name.value;
+        const email = form.email.value;
+        const business = isOrg && form["org-name"].value ? form["org-name"].value : "Individual";
+        const created = new Date().toLocaleDateString();
         
+        // Save account info for admin to see
+        const clientAccounts = JSON.parse(sessionStorage.getItem('clientAccounts') || '[]');
+        
+        // Check if account already exists
+        const existingAccount = clientAccounts.find(acc => acc.name === displayName || acc.email === email);
+        if (!existingAccount) {
+            clientAccounts.push({
+                name: displayName,
+                email: email,
+                business: business,
+                password: p1,
+                created: created
+            });
+            sessionStorage.setItem('clientAccounts', JSON.stringify(clientAccounts));
+        }
+        
+        sessionStorage.setItem("clientAccess", "granted");
         sessionStorage.setItem("clientName", displayName);
+        sessionStorage.setItem("clientEmail", email);
+        sessionStorage.setItem("clientBusiness", business);
+        sessionStorage.setItem("clientCreated", created);
+        
         window.location.href = "client-dashboard.html";
       });
     </script>

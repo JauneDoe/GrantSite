@@ -125,9 +125,49 @@
             <div id="view-settings" class="dash-view">
                  <div class="section-heading">
                     <h2>Admin Settings</h2>
+                    <p>Manage client accounts and help with password resets.</p>
                 </div>
+                
+                <!-- Client Accounts Management -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <h3>Client Accounts</h3>
+                    <p style="color: var(--muted); margin-bottom: 1.5rem;">All registered client accounts are listed below. You can assist clients with password resets and account issues.</p>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead style="background: #fdfdfd; border-bottom: 1px solid var(--border);">
+                                <tr>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Client Name</th>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Email</th>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Business</th>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Created</th>
+                                    <th style="padding: 1rem; font-size: 0.85rem; color: var(--muted);">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="client-accounts-list" style="font-size: 0.95rem;">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="no-accounts-msg" style="display: none; padding: 2rem; text-align: center; color: var(--muted);">
+                        No client accounts registered yet.
+                    </div>
+                </div>
+
+                <!-- Admin Account Info -->
                 <div class="card">
-                    <p>Future account settings and password management will go here.</p>
+                    <h3>Admin Account</h3>
+                    <div style="margin-top: 1.5rem;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Username</label>
+                                <p style="font-weight: 600;">Owner</p>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Role</label>
+                                <p style="font-weight: 600;">Administrator</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -154,7 +194,10 @@
               navLinks[1].classList.add('active');
               loadMessageClients();
           }
-          if(tabName === 'settings') navLinks[2].classList.add('active');
+          if(tabName === 'settings') {
+              navLinks[2].classList.add('active');
+              loadClientAccounts();
+          }
       }
 
       // MESSAGING LOGIC
@@ -405,6 +448,72 @@
               requests.splice(index, 1);
               localStorage.setItem("clientRequests", JSON.stringify(requests));
               loadCRM();
+          }
+      }
+
+      // CLIENT ACCOUNTS MANAGEMENT
+      function loadClientAccounts() {
+          const accountsList = document.getElementById('client-accounts-list');
+          const noAccountsMsg = document.getElementById('no-accounts-msg');
+          
+          // Get all client accounts from sessionStorage
+          const clientAccounts = JSON.parse(sessionStorage.getItem('clientAccounts') || '[]');
+          
+          if (clientAccounts.length === 0) {
+              accountsList.innerHTML = '';
+              noAccountsMsg.style.display = 'block';
+              accountsList.closest('div').previousElementSibling.style.display = 'none';
+              return;
+          }
+          
+          noAccountsMsg.style.display = 'none';
+          accountsList.closest('div').previousElementSibling.style.display = 'block';
+          accountsList.innerHTML = '';
+          
+          clientAccounts.forEach((account, index) => {
+              const row = document.createElement('tr');
+              row.style.borderBottom = '1px solid var(--border)';
+              
+              row.innerHTML = `
+                  <td style="padding: 1rem; font-weight: 600;">${account.name || 'N/A'}</td>
+                  <td style="padding: 1rem;">${account.email || 'N/A'}</td>
+                  <td style="padding: 1rem;">${account.business || 'N/A'}</td>
+                  <td style="padding: 1rem;">${account.created || 'N/A'}</td>
+                  <td style="padding: 1rem;">
+                      <button onclick="resetClientPassword('${account.name}')" 
+                              class="button button-ghost" 
+                              style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                          Reset Password
+                      </button>
+                  </td>
+              `;
+              
+              accountsList.appendChild(row);
+          });
+      }
+
+      function resetClientPassword(clientName) {
+          const newPassword = prompt(`Enter new password for ${clientName}:`);
+          
+          if (!newPassword) {
+              alert('Password reset cancelled.');
+              return;
+          }
+          
+          if (newPassword.length < 6) {
+              alert('Password must be at least 6 characters.');
+              return;
+          }
+          
+          const clientAccounts = JSON.parse(sessionStorage.getItem('clientAccounts') || '[]');
+          const account = clientAccounts.find(acc => acc.name === clientName);
+          
+          if (account) {
+              account.password = newPassword;
+              sessionStorage.setItem('clientAccounts', JSON.stringify(clientAccounts));
+              alert(`Password for ${clientName} has been reset successfully!`);
+          } else {
+              alert('Account not found.');
           }
       }
 
