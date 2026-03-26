@@ -55,6 +55,14 @@
     </main>
 
     <script>
+      // Ensure any previous session is cleared before user can login again
+      sessionStorage.removeItem("clientAccess");
+      sessionStorage.removeItem("clientName");
+      sessionStorage.removeItem("clientEmail");
+      sessionStorage.removeItem("clientBusiness");
+      sessionStorage.removeItem("clientCreated");
+      sessionStorage.removeItem("ownerAccess");
+
       const OWNER_USERNAME = "Owner";
       const OWNER_PASSWORD = "Easyas123";
 

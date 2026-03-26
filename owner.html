@@ -33,7 +33,7 @@
         </span>
         <div class="nav-actions">
           <a class="button button-ghost" href="index.html" target="_blank">View Live Site</a>
-          <button class="button button-ghost" onclick="location.href='index.html'">Sign Out</button>
+          <button class="button button-ghost" onclick="ownerLogout()">Sign Out</button>
         </div>
       </nav>
     </header>
@@ -524,6 +524,16 @@
           } else {
               alert('Account not found.');
           }
+      }
+
+      function ownerLogout() {
+          sessionStorage.removeItem("ownerAccess");
+          sessionStorage.removeItem("clientAccess");
+          sessionStorage.removeItem("clientName");
+          sessionStorage.removeItem("clientEmail");
+          sessionStorage.removeItem("clientBusiness");
+          sessionStorage.removeItem("clientCreated");
+          window.location.href = "index.html";
       }
 
       // Initialize

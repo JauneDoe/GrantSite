@@ -30,7 +30,7 @@
         </span>
         <div class="nav-actions">
             <span style="font-size: 0.9rem; margin-right: 1rem;">Welcome, <span id="user-name">Client</span></span>
-          <a class="button button-ghost" href="index.html">Sign Out</a>
+          <a class="button button-ghost" href="#" onclick="clientLogout(); return false;">Sign Out</a>
         </div>
       </nav>
     </header>
@@ -544,6 +544,15 @@
             prefMessage.style.color = "#16a34a";
             
             setTimeout(() => prefMessage.textContent = "", 2000);
+        }
+
+        function clientLogout() {
+            sessionStorage.removeItem("clientAccess");
+            sessionStorage.removeItem("clientName");
+            sessionStorage.removeItem("clientEmail");
+            sessionStorage.removeItem("clientBusiness");
+            sessionStorage.removeItem("clientCreated");
+            window.location.href = "index.html";
         }
 
         // Load preferences on page load
