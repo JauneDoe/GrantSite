@@ -24,8 +24,8 @@
 - [ ] Copy the Firebase config object
 
 ### 3. Update firebase-config.js
-- [ ] Open `firebase-config.js`
-- [ ] Replace placeholder values with your credentials:
+- [x] Open `firebase-config.js`
+- [x] Replace placeholder values with your credentials:
   - `apiKey`
   - `authDomain`
   - `projectId`

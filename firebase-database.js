@@ -1,10 +1,5 @@
 // Firebase Firestore Database Helper Functions
-import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDoc, getDocs, query, where, orderBy } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { app } from "./firebase-config.js";
-
-const db = getFirestore(app);
-const auth = getAuth(app);
+// Note: This assumes firebase-config.js has been loaded and firebase is available globally
 
 /**
  * Create a new grant application
@@ -14,7 +9,7 @@ const auth = getAuth(app);
  */
 async function createGrant(clientId, grantData) {
   try {
-    const docRef = await addDoc(collection(db, "grants"), {
+    const docRef = await firebase.firestore().collection("grants").add({
       clientId: clientId,
       ...grantData,
       createdAt: new Date(),
@@ -36,12 +31,10 @@ async function createGrant(clientId, grantData) {
  */
 async function getClientGrants(clientId) {
   try {
-    const q = query(
-      collection(db, "grants"),
-      where("clientId", "==", clientId),
-      orderBy("createdAt", "desc")
-    );
-    const snapshot = await getDocs(q);
+    const snapshot = await firebase.firestore().collection("grants")
+      .where("clientId", "==", clientId)
+      .orderBy("createdAt", "desc")
+      .get();
 
     const grants = [];
     snapshot.forEach((doc) => {
@@ -63,7 +56,7 @@ async function getClientGrants(clientId) {
  */
 async function updateGrant(grantId, updates) {
   try {
-    await updateDoc(doc(db, "grants", grantId), {
+    await firebase.firestore().collection("grants").doc(grantId).update({
       ...updates,
       lastUpdated: new Date()
     });
@@ -82,10 +75,10 @@ async function updateGrant(grantId, updates) {
  */
 async function getGrant(grantId) {
   try {
-    const docSnap = await getDoc(doc(db, "grants", grantId));
+    const doc = await firebase.firestore().collection("grants").doc(grantId).get();
 
-    if (docSnap.exists()) {
-      return { success: true, grant: { id: docSnap.id, ...docSnap.data() } };
+    if (doc.exists) {
+      return { success: true, grant: { id: doc.id, ...doc.data() } };
     } else {
       return { success: false, error: "Grant not found" };
     }
@@ -102,7 +95,7 @@ async function getGrant(grantId) {
  */
 async function deleteGrant(grantId) {
   try {
-    await deleteDoc(doc(db, "grants", grantId));
+    await firebase.firestore().collection("grants").doc(grantId).delete();
     return { success: true };
   } catch (error) {
     console.error("Delete grant error:", error.message);
@@ -119,7 +112,7 @@ async function deleteGrant(grantId) {
  */
 async function sendMessage(senderId, recipientId, message) {
   try {
-    const docRef = await addDoc(collection(db, "messages"), {
+    const docRef = await firebase.firestore().collection("messages").add({
       senderId: senderId,
       recipientId: recipientId,
       message: message,
@@ -142,17 +135,14 @@ async function sendMessage(senderId, recipientId, message) {
  */
 async function getMessages(userId, unreadOnly = false) {
   try {
-    let q = query(
-      collection(db, "messages"),
-      where("recipientId", "==", userId)
-    );
+    let query = firebase.firestore().collection("messages")
+      .where("recipientId", "==", userId);
 
     if (unreadOnly) {
-      q = query(q, where("read", "==", false));
+      query = query.where("read", "==", false);
     }
 
-    q = query(q, orderBy("timestamp", "desc"));
-    const snapshot = await getDocs(q);
+    const snapshot = await query.orderBy("timestamp", "desc").get();
     const messages = [];
 
     snapshot.forEach((doc) => {
@@ -173,7 +163,7 @@ async function getMessages(userId, unreadOnly = false) {
  */
 async function markMessageAsRead(messageId) {
   try {
-    await updateDoc(doc(db, "messages", messageId), { read: true });
+    await firebase.firestore().collection("messages").doc(messageId).update({ read: true });
     return { success: true };
   } catch (error) {
     console.error("Mark message error:", error.message);
@@ -189,10 +179,10 @@ async function markMessageAsRead(messageId) {
  */
 async function saveSiteContent(pageId, contentData) {
   try {
-    await setDoc(doc(db, "site-content", pageId), {
+    await firebase.firestore().collection("site-content").doc(pageId).set({
       ...contentData,
       lastUpdated: new Date(),
-      updatedBy: auth.currentUser.uid
+      updatedBy: firebase.auth().currentUser.uid
     }, { merge: true });
 
     return { success: true };
@@ -209,10 +199,10 @@ async function saveSiteContent(pageId, contentData) {
  */
 async function getSiteContent(pageId) {
   try {
-    const docSnap = await getDoc(doc(db, "site-content", pageId));
+    const doc = await firebase.firestore().collection("site-content").doc(pageId).get();
 
-    if (docSnap.exists()) {
-      return { success: true, content: docSnap.data() };
+    if (doc.exists) {
+      return { success: true, content: doc.data() };
     } else {
       return { success: false, error: "Content not found" };
     }
