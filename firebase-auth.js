@@ -9,9 +9,13 @@
  */
 async function signUpClient(email, password, clientData) {
   try {
+    // persist auth across browser sessions
+    await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
     const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
     const user = userCredential.user;
-    // Store client profile in Firestore
+
+    // store client profile in Firestore
     await firebase.firestore().collection("clients").doc(user.uid).set({
       email: email,
       createdAt: new Date(),
@@ -19,10 +23,12 @@ async function signUpClient(email, password, clientData) {
       role: "client",
       ...clientData
     });
+
+    console.log("Client signed up and profile saved:", user.uid);
     return { success: true, user: user, uid: user.uid };
   } catch (error) {
-    console.error("Signup error:", error.message);
-    return { success: false, error: error.message };
+    console.error("Signup error:", error);
+    return { success: false, error: error.message || String(error) };
   }
 }
 /**
@@ -46,16 +52,33 @@ async function deleteCurrentUser() {
  */
 async function signInUser(email, password) {
   try {
+    await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
     const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
     const user = userCredential.user;
-    // Get user profile
-    const userDoc = await firebase.firestore().collection("clients").doc(user.uid).get();
-    const profile = userDoc.exists ? userDoc.data() : null;
-    const role = profile?.role || "client";
+
+    const userDocRef = firebase.firestore().collection("clients").doc(user.uid);
+    const userDoc = await userDocRef.get();
+    let profile = userDoc.exists ? userDoc.data() : null;
+
+    if (!profile) {
+      // If the account came directly from Auth console, create a minimal Firestore profile
+      profile = {
+        email: user.email,
+        clientName: user.email,
+        role: "client",
+        createdAt: new Date(),
+      };
+      await userDocRef.set(profile, { merge: true });
+    }
+
+    const role = profile.role || "client";
+
+    console.log("User signed in:", user.uid, "role:", role, "profile:", profile);
     return { success: true, user: user, uid: user.uid, role: role, profile: profile };
   } catch (error) {
-    console.error("Sign in error:", error.message);
-    return { success: false, error: error.message };
+    console.error("Sign in error:", error);
+    return { success: false, error: error.message || String(error) };
   }
 }
 /**
