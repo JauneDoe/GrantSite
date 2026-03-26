@@ -339,8 +339,17 @@
         document.getElementById('settings-name').textContent = profile.clientName || profile.fullName || 'Unknown Client';
         document.getElementById('settings-email').textContent = profile.email || 'not.provided@example.com';
         document.getElementById('settings-business').textContent = profile.business || 'Not specified';
-        document.getElementById('settings-created').textContent = new Date(profile.createdAt?.toDate?.() ?? profile.createdAt || Date.now()).toLocaleDateString();
-      };
+
+        let createdAt = profile.createdAt;
+        if (createdAt && typeof createdAt.toDate === 'function') {
+          createdAt = createdAt.toDate();
+        }
+        if (!createdAt) {
+          createdAt = Date.now();
+        }
+
+        document.getElementById('settings-created').textContent = new Date(createdAt).toLocaleDateString();
+      }
 
       document.getElementById('password-form').addEventListener('submit', async (e) => {
         e.preventDefault();
