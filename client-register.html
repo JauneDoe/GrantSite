@@ -36,33 +36,9 @@
       </div>
 
       <form class="card contact-form" id="donor-register-form">
-        <fieldset class="form-group" style="border: none; padding: 0; margin-bottom: 1.5rem;">
-            <legend style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Your Business Type:</legend>
-            <div style="display: flex; gap: 1.5rem;">
-                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-                    <input type="radio" name="account-type" value="individual" checked onchange="toggleOrgFields()" /> Solo Consultant
-                </label>
-                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-                    <input type="radio" name="account-type" value="organization" onchange="toggleOrgFields()" /> Consulting Firm
-                </label>
-            </div>
-        </fieldset>
-
-        <div id="org-fields" style="display: none;">
-            <div class="form-field">
-                <label for="org-name">Consulting Firm Name</label>
-                <input id="org-name" name="org-name" type="text" placeholder="e.g. Your Consulting Group" />
-            </div>
-            <div class="form-field">
-                <label for="ein">EIN (Employer ID Number)</label>
-                <input id="ein" name="ein" type="text" placeholder="XX-XXXXXXX" />
-                <span class="help-text" style="font-size: 0.8rem; color: var(--muted);">Optional. Required for business grants.</span>
-            </div>
-        </div>
-
         <div class="form-field">
-          <label for="name">Your Full Name</label>
-          <input id="name" name="name" type="text" required placeholder="Full legal name" />
+          <label for="name">Your Full Name or Business Name or Organization</label>
+          <input id="name" name="name" type="text" required placeholder="Full legal name, business name, or organization" />
         </div>
 
         <div class="form-field">
@@ -140,12 +116,6 @@
     </div>
 
     <script>
-      function toggleOrgFields() {
-          const isOrg = document.querySelector('input[name="account-type"][value="organization"]').checked;
-          const orgFields = document.getElementById('org-fields');
-          orgFields.style.display = isOrg ? 'block' : 'none';
-      }
-
       const form = document.getElementById("donor-register-form");
       const termsSection = document.getElementById("terms-section");
       const acceptBtn = document.getElementById("accept-btn");
@@ -183,21 +153,18 @@
           return;
         }
 
-        const isOrg = document.querySelector('input[name="account-type"][value="organization"]').checked;
-        const displayName = isOrg && form["org-name"].value ? form["org-name"].value : form.name.value;
+        const displayName = form.name.value;
         const email = form.email.value;
-        const business = isOrg && form["org-name"].value ? form["org-name"].value : "Individual";
         const created = new Date().toLocaleDateString();
 
         const clientData = {
           clientName: displayName,
-          business: business,
-          fullName: form.name.value,
+          business: displayName,
+          fullName: displayName,
           address: form.address.value,
           city: form.city.value,
           zip: form.zip.value,
-          ein: form["ein"] ? form["ein"].value : null,
-          accountType: isOrg ? "organization" : "individual"
+          accountType: "individual"
         };
 
         const result = await signUpClient(email, p1, clientData);
