@@ -29,7 +29,7 @@
         </span>
         <div class="nav-actions">
             <span style="font-size: 0.9rem; margin-right: 1rem;">Welcome, <span id="user-name">Client</span></span>
-          <a class="button button-ghost" href="#" onclick="clientLogout(); return false;">Sign Out</a>
+          <a class="button button-ghost" href="#" onclick="event.preventDefault(); clientLogout();">Sign Out</a>
         </div>
       </nav>
     </header>
@@ -463,8 +463,15 @@
       }
 
       async function clientLogout() {
-        await signOutUser();
-        window.location.href = 'login.html';
+        console.log('Starting logout...');
+        const result = await signOutUser();
+        if (!result.success) {
+          console.error('Sign out failed:', result.error);
+          alert('Sign out failed: ' + result.error);
+          return;
+        }
+        console.log('Sign out successful, auth listener should redirect');
+        // Don't redirect here, let the auth state listener handle it
       }
 
       async function deleteClientAccount() {
