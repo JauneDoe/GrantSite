@@ -86,7 +86,13 @@
           <label for="confirm-password">Confirm Password</label>
           <input id="confirm-password" name="confirm-password" type="password" autocomplete="new-password" required />
         </div>
-        <button class="button button-primary" type="submit">Create Account</button>
+        <div class="form-field" style="display: flex; align-items: center; gap: 0.5rem;">
+          <input id="terms-inline" type="checkbox" />
+          <label for="terms-inline" style="font-size: 0.9rem;">
+            I agree to the <a href="#" id="read-terms" style="color: var(--primary); text-decoration: underline;">Terms & Conditions</a>
+          </label>
+        </div>
+        <button id="create-account-btn" class="button button-primary" type="submit" disabled>Create Account</button>
       </form>
     </main>
 
@@ -184,6 +190,18 @@
         }
     </script>
     <script>
+      const termsInline = document.getElementById("terms-inline");
+      const createAccountBtn = document.getElementById("create-account-btn");
+
+      termsInline.addEventListener("change", () => {
+          createAccountBtn.disabled = !termsInline.checked;
+      });
+
+      document.getElementById("read-terms").addEventListener("click", (event) => {
+          event.preventDefault();
+          document.getElementById("terms-modal").style.display = "flex";
+      });
+
       function toggleOrgFields() {
           const isOrg = document.querySelector('input[name="account-type"][value="organization"]').checked;
           const orgFields = document.getElementById('org-fields');
@@ -227,10 +245,8 @@
         sessionStorage.setItem("clientBusiness", business);
         sessionStorage.setItem("clientCreated", created);
 
-        document.getElementById("terms-modal").style.display = "flex";
-        document.getElementById("terms-agree").checked = false;
-        document.getElementById("accept-btn").disabled = true;
-        document.getElementById("accept-btn").style.opacity = "0.5";
+        // In this flow, user agrees via inline checkbox and then is redirected directly.
+        window.location.href = "client-dashboard.html";
       });
     </script>
   </body>
