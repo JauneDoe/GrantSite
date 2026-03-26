@@ -6,6 +6,15 @@
     <title>Donor Registration</title>
     <meta name="description" content="Create a donor account to track your impact." />
     <link rel="stylesheet" href="styles.css" />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js"></script>
+    <!-- Firebase Configuration and Helpers -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-auth.js"></script>
+    <script src="firebase-database.js"></script>
   </head>
   <body>
     <header class="site-header">
@@ -22,27 +31,27 @@
 
     <main class="section">
       <div class="section-heading">
-        <h2>Create Client Account</h2>
-        <p>Track your grant applications and funding status.</p>
+        <h2>Consultant Account Registration</h2>
+        <p>Register your consulting business to manage client grant applications and funding requests.</p>
       </div>
 
       <form class="card contact-form" id="donor-register-form">
         <fieldset class="form-group" style="border: none; padding: 0; margin-bottom: 1.5rem;">
-            <legend style="font-weight: 600; margin-bottom: 0.5rem; display: block;">I am applying as:</legend>
+            <legend style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Your Business Type:</legend>
             <div style="display: flex; gap: 1.5rem;">
                 <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-                    <input type="radio" name="account-type" value="individual" checked onchange="toggleOrgFields()" /> An Individual
+                    <input type="radio" name="account-type" value="individual" checked onchange="toggleOrgFields()" /> Solo Consultant
                 </label>
                 <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-                    <input type="radio" name="account-type" value="organization" onchange="toggleOrgFields()" /> An Organization
+                    <input type="radio" name="account-type" value="organization" onchange="toggleOrgFields()" /> Consulting Firm
                 </label>
             </div>
         </fieldset>
 
         <div id="org-fields" style="display: none;">
             <div class="form-field">
-                <label for="org-name">Organization / Company Name</label>
-                <input id="org-name" name="org-name" type="text" placeholder="e.g. Acme Corp Foundation" />
+                <label for="org-name">Consulting Firm Name</label>
+                <input id="org-name" name="org-name" type="text" placeholder="e.g. Your Consulting Group" />
             </div>
             <div class="form-field">
                 <label for="ein">EIN (Employer ID Number)</label>
@@ -52,7 +61,7 @@
         </div>
 
         <div class="form-field">
-          <label for="name">Contact Name</label>
+          <label for="name">Your Full Name</label>
           <input id="name" name="name" type="text" required placeholder="Full legal name" />
         </div>
 
@@ -81,7 +90,99 @@
       </form>
     </main>
 
+    <!-- TERMS & CONDITIONS MODAL -->
+    <div id="terms-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 12px; max-width: 600px; max-height: 80vh; overflow-y: auto; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
+            <h2 style="margin-bottom: 1rem; color: var(--text);">Terms & Conditions</h2>
+            
+            <div style="margin-bottom: 1.5rem; color: var(--text); line-height: 1.8; font-size: 0.95rem;">
+                <h3 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--primary);">1. Service Overview & Data Sharing</h3>
+                <p>By creating an account with 2xclusive Solutions Consulting, LLC, you authorize us to manage your grant funding search. As part of this service, we will search for and identify potential funding organizations, grant providers, and funding partners. Your information will be shared with these third parties as necessary to help you obtain the funding you are seeking. This data sharing is fundamental to our service and your account creation constitutes consent to this practice.</p>
+
+                <h3 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--primary);">2. Data Controller Responsibility</h3>
+                <p>2xclusive Solutions Consulting, LLC acts as the Data Controller for all information you provide. We are responsible for managing your data in compliance with DARP and all applicable data protection regulations. We implement industry-standard security measures to protect your information.</p>
+
+                <h3 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--primary);">3. Third-Party Funding Partners</h3>
+                <p>Your data may be shared with grant organizations, government agencies, funding foundations, lenders, and other entities that may provide funding opportunities. We will share your information only to facilitate funding opportunities relevant to your needs. You authorize 2xclusive Solutions to make these sharing decisions on your behalf to advance your funding objectives.</p>
+
+                <h3 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--primary);">4. Data Access & Control</h3>
+                <p>You retain the right to access, review, correct, or request deletion of your personal information at any time through your account settings. You may also contact us directly. We will honor such requests within 30 days unless otherwise required by law.</p>
+
+                <h3 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--primary);">5. Data Security</h3>
+                <p>2xclusive Solutions implements appropriate technical and organizational security measures to protect your data from unauthorized access, loss, or misuse. While no system is completely secure, we maintain reasonable protections in accordance with industry standards.</p>
+
+                <h3 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--primary);">6. Your Responsibility</h3>
+                <p>You agree to provide accurate information and maintain the confidentiality of your password. You are responsible for all activity under your account. You warrant that you have the authority to provide the information you submit and that such information does not infringe on any third-party rights.</p>
+
+                <h3 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--primary);">7. No Guarantee of Funding</h3>
+                <p>While 2xclusive Solutions works to identify funding opportunities, we do not guarantee funding approval, grant amounts, or successful outcomes. Grant decisions are made solely by the funding organizations and are beyond our control.</p>
+
+                <h3 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--primary);">8. Limitation of Liability</h3>
+                <p>2xclusive Solutions is not liable for: (a) grant denials or unfavorable funding outcomes, (b) delays in funding decisions, (c) actions of third-party funding organizations, or (d) any indirect or consequential damages arising from your use of this service.</p>
+
+                <h3 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--primary);">9. Account Termination</h3>
+                <p>We reserve the right to terminate your account if you: (a) violate these terms, (b) provide false or misleading information, (c) engage in fraudulent activity, or (d) misuse the platform.</p>
+
+                <h3 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--primary);">10. Changes to Terms</h3>
+                <p>We may update these terms at any time. Continued use of the platform constitutes acceptance of updated terms.</p>
+
+                <div style="background: #eff6ff; border-left: 4px solid var(--primary); padding: 1rem; margin: 1.5rem 0;">
+                    <p style="margin: 0; color: var(--primary); font-weight: 600;">✓ By creating an account, you acknowledge that you understand your data will be shared with funding organizations and third parties to help you obtain the funding you seek, and you consent to this data sharing as part of our service.</p>
+                </div>
+            </div>
+
+            <label style="display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 1.5rem; cursor: pointer;">
+                <input type="checkbox" id="terms-agree" style="margin-top: 0.25rem; cursor: pointer;" />
+                <span style="color: var(--text);">I have read and agree to these Terms & Conditions and consent to data sharing with funding organizations and partners as described above.</span>
+            </label>
+
+            <div style="display: flex; gap: 1rem;">
+                <button type="button" class="button button-primary" onclick="acceptTerms()" id="accept-btn" disabled style="opacity: 0.5; cursor: not-allowed;">I Agree & Continue</button>
+                <button type="button" class="button button-ghost" onclick="rejectTerms()">Decline & Exit</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        document.getElementById("terms-agree").addEventListener("change", function() {
+            const acceptBtn = document.getElementById("accept-btn");
+            if (this.checked) {
+                acceptBtn.disabled = false;
+                acceptBtn.style.opacity = "1";
+                acceptBtn.style.cursor = "pointer";
+            } else {
+                acceptBtn.disabled = true;
+                acceptBtn.style.opacity = "0.5";
+                acceptBtn.style.cursor = "not-allowed";
+            }
+        });
+
+        function acceptTerms() {
+            // Proceed to dashboard
+            window.location.href = "client-dashboard.html";
+        }
+
+        function rejectTerms() {
+            // Clear account data if terms are rejected
+            const clientAccounts = JSON.parse(localStorage.getItem('clientAccounts') || '[]');
+            const accountToRemove = clientAccounts[clientAccounts.length - 1];
+            
+            if (accountToRemove) {
+                clientAccounts.pop();
+                localStorage.setItem('clientAccounts', JSON.stringify(clientAccounts));
+            }
+            
+            // Clear session
+            sessionStorage.removeItem("clientAccess");
+            sessionStorage.removeItem("clientName");
+            sessionStorage.removeItem("clientEmail");
+            sessionStorage.removeItem("clientBusiness");
+            sessionStorage.removeItem("clientCreated");
+            
+            alert("Account creation cancelled. You have been returned to the homepage.");
+            window.location.href = "index.html";
+        }
+    </script>
       function toggleOrgFields() {
           const isOrg = document.querySelector('input[name="account-type"][value="organization"]').checked;
           const orgFields = document.getElementById('org-fields');
@@ -131,7 +232,11 @@
         sessionStorage.setItem("clientBusiness", business);
         sessionStorage.setItem("clientCreated", created);
         
-        window.location.href = "client-dashboard.html";
+        // Show terms modal instead of redirecting immediately
+        document.getElementById("terms-modal").style.display = "flex";
+        document.getElementById("terms-agree").checked = false;
+        document.getElementById("accept-btn").disabled = true;
+        document.getElementById("accept-btn").style.opacity = "0.5";
       });
     </script>
   </body>
