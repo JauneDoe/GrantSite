@@ -183,6 +183,7 @@
             window.location.href = "index.html";
         }
     </script>
+    <script>
       function toggleOrgFields() {
           const isOrg = document.querySelector('input[name="account-type"][value="organization"]').checked;
           const orgFields = document.getElementById('org-fields');
@@ -201,19 +202,13 @@
           return;
         }
 
-        // Simulating account creation
-        // In a real app, this would send data to a secure server.
-        
         const isOrg = document.querySelector('input[name="account-type"][value="organization"]').checked;
         const displayName = isOrg && form["org-name"].value ? form["org-name"].value : form.name.value;
         const email = form.email.value;
         const business = isOrg && form["org-name"].value ? form["org-name"].value : "Individual";
         const created = new Date().toLocaleDateString();
-        
-        // Save account info for admin to see
+
         const clientAccounts = JSON.parse(localStorage.getItem('clientAccounts') || '[]');
-        
-        // Check if account already exists
         const existingAccount = clientAccounts.find(acc => acc.name === displayName || acc.email === email);
         if (!existingAccount) {
             clientAccounts.push({
@@ -225,14 +220,13 @@
             });
             localStorage.setItem('clientAccounts', JSON.stringify(clientAccounts));
         }
-        
+
         sessionStorage.setItem("clientAccess", "granted");
         sessionStorage.setItem("clientName", displayName);
         sessionStorage.setItem("clientEmail", email);
         sessionStorage.setItem("clientBusiness", business);
         sessionStorage.setItem("clientCreated", created);
-        
-        // Show terms modal instead of redirecting immediately
+
         document.getElementById("terms-modal").style.display = "flex";
         document.getElementById("terms-agree").checked = false;
         document.getElementById("accept-btn").disabled = true;
