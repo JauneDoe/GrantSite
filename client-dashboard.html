@@ -19,7 +19,7 @@
   <body>
     <script>
       // No sessionStorage needed; page access is managed by Firebase Auth listener.
-      initClientDashboard();
+      // initClientDashboard() will be called at the end of the script
     </script>
     <header class="site-header">
       <nav class="nav">
@@ -29,7 +29,7 @@
         </span>
         <div class="nav-actions">
             <span style="font-size: 0.9rem; margin-right: 1rem;">Welcome, <span id="user-name">Client</span></span>
-          <a class="button button-ghost" href="#" onclick="event.preventDefault(); clientLogout();">Sign Out</a>
+          <a class="button button-ghost" href="#" onclick="clientLogout(event)">Sign Out</a>
         </div>
       </nav>
     </header>
@@ -340,7 +340,7 @@
         document.getElementById('settings-email').textContent = profile.email || 'not.provided@example.com';
         document.getElementById('settings-business').textContent = profile.business || 'Not specified';
         document.getElementById('settings-created').textContent = new Date(profile.createdAt?.toDate?.() ?? profile.createdAt || Date.now()).toLocaleDateString();
-      }
+      };
 
       document.getElementById('password-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -462,7 +462,8 @@
         await renderClientChat();
       }
 
-      async function clientLogout() {
+      async function clientLogout(event) {
+        event.preventDefault();
         console.log('Starting logout...');
         const result = await signOutUser();
         if (!result.success) {
