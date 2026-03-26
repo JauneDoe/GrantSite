@@ -162,13 +162,11 @@
           window.location.href = "client-dashboard.html";
       });
 
-      rejectBtn.addEventListener("click", () => {
-          const clientAccounts = JSON.parse(localStorage.getItem('clientAccounts') || '[]');
-          const accountToRemove = clientAccounts[clientAccounts.length - 1];
-
-          if (accountToRemove) {
-              clientAccounts.pop();
-              localStorage.setItem('clientAccounts', JSON.stringify(clientAccounts));
+      rejectBtn.addEventListener("click", async () => {
+          // Delete the Firebase account since terms were rejected
+          const deleteResult = await deleteCurrentUser();
+          if (!deleteResult.success) {
+              console.error("Failed to delete account:", deleteResult.error);
           }
 
           sessionStorage.removeItem("clientAccess");
@@ -181,7 +179,7 @@
           window.location.href = "index.html";
       });
 
-      form.addEventListener("submit", (event) => {
+      form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const p1 = form["new-password"].value;
         const p2 = form["confirm-password"].value;
@@ -197,17 +195,21 @@
         const business = isOrg && form["org-name"].value ? form["org-name"].value : "Individual";
         const created = new Date().toLocaleDateString();
 
-        const clientAccounts = JSON.parse(localStorage.getItem('clientAccounts') || '[]');
-        const existingAccount = clientAccounts.find(acc => acc.name === displayName || acc.email === email);
-        if (!existingAccount) {
-            clientAccounts.push({
-                name: displayName,
-                email: email,
-                business: business,
-                password: p1,
-                created: created
-            });
-            localStorage.setItem('clientAccounts', JSON.stringify(clientAccounts));
+        const clientData = {
+          clientName: displayName,
+          business: business,
+          fullName: form.name.value,
+          address: form.address.value,
+          city: form.city.value,
+          zip: form.zip.value,
+          ein: form["ein"] ? form["ein"].value : null,
+          accountType: isOrg ? "organization" : "individual"
+        };
+
+        const result = await signUpClient(email, p1, clientData);
+        if (!result.success) {
+          alert("Registration failed: " + result.error);
+          return;
         }
 
         sessionStorage.setItem("clientAccess", "granted");
