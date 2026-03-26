@@ -7,10 +7,10 @@
     <meta name="description" content="Track your grant applications." />
     <link rel="stylesheet" href="styles.css" />
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
     <!-- Firebase Configuration and Helpers -->
     <script src="firebase-config.js"></script>
     <script src="firebase-auth.js"></script>
@@ -18,9 +18,8 @@
   </head>
   <body>
     <script>
-      if (sessionStorage.getItem("clientAccess") !== "granted") {
-        window.location.href = "login.html";
-      }
+      // No sessionStorage needed; page access is managed by Firebase Auth listener.
+      initClientDashboard();
     </script>
     <header class="site-header">
       <nav class="nav">
@@ -241,369 +240,246 @@
     </div>
 
     <script>
-        const name = sessionStorage.getItem("clientName");
-        if (name) {
-            document.getElementById("user-name").textContent = name;
+      let currentUid = null;
+      let currentProfile = null;
+
+      function switchClientTab(tabName) {
+        document.querySelectorAll('.dash-view').forEach(el => el.classList.remove('active'));
+        document.getElementById('view-' + tabName).classList.add('active');
+
+        const navLinks = document.querySelectorAll('.dash-link');
+        navLinks.forEach(el => el.classList.remove('active'));
+        if (tabName === 'dashboard') navLinks[0].classList.add('active');
+        if (tabName === 'messages') navLinks[1].classList.add('active');
+        if (tabName === 'settings') navLinks[2].classList.add('active');
+
+        if (tabName === 'messages') {
+          markMessagesRead();
+          renderClientChat();
+          updateClientBadge();
         }
 
-        // TAB SWITCHING
-        function switchClientTab(tabName) {
-            document.querySelectorAll('.dash-view').forEach(el => el.classList.remove('active'));
-            document.getElementById('view-' + tabName).classList.add('active');
-            
-            const navLinks = document.querySelectorAll('.dash-link');
-            navLinks.forEach(el => el.classList.remove('active'));
-            if(tabName === 'dashboard') navLinks[0].classList.add('active');
-            if(tabName === 'messages') {
-                navLinks[1].classList.add('active');
-                
-                // Mark as read
-                const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
-                const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
-                if(allMsgs[clientName]) {
-                    let changed = false;
-                    allMsgs[clientName].forEach(m => {
-                        if(m.sender === 'Admin' && !m.read) {
-                            m.read = true;
-                            changed = true;
-                        }
-                    });
-                    if(changed) localStorage.setItem("siteMessages", JSON.stringify(allMsgs));
-                }
-
-                renderClientChat();
-                updateClientBadge(); // Update UI
-            }
-            if(tabName === 'settings') {
-                navLinks[2].classList.add('active');
-                loadAccountSettings();
-            }
+        if (tabName === 'settings') {
+          loadAccountSettings(currentProfile);
         }
+      }
 
-        // CHAT LOGIC
-        function renderClientChat() {
-            const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
-            const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
-            const msgs = allMsgs[clientName] || [];
-            
-            const window = document.getElementById('client-chat-window');
-            window.innerHTML = '';
-            
-            if(msgs.length === 0) {
-                 window.innerHTML = `<p style="color:var(--muted); text-align: center; margin-top: 2rem;">No messages yet.</p>`;
-            }
+      async function initClientDashboard() {
+        firebase.auth().onAuthStateChanged(async (user) => {
+          if (!user) {
+            window.location.href = 'login.html';
+            return;
+          }
+          currentUid = user.uid;
 
-            msgs.forEach(m => {
-                const isMe = m.sender === 'Client';
-                const div = document.createElement('div');
-                div.className = `message ${isMe ? 'sent' : 'received'}`;
-                 // Admin messages show name
-                const label = isMe ? '' : `<strong style="font-size: 0.75rem; display: block; margin-bottom: 2px;">Consultant</strong>`;
-                div.innerHTML = `${label}${m.text} <span class="message-meta">${m.time}</span>`;
-                window.appendChild(div);
-            });
-            window.scrollTop = window.scrollHeight;
-        }
+          const profileDoc = await firebase.firestore().collection('clients').doc(currentUid).get();
+          currentProfile = profileDoc.exists ? profileDoc.data() : { clientName: user.email, fullName: '', email: user.email };
+          document.getElementById('user-name').textContent = currentProfile.clientName || user.email;
 
-        function updateClientBadge() {
-             const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
-             const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
-             const msgs = allMsgs[clientName] || [];
-             const unread = msgs.filter(m => m.sender === 'Admin' && !m.read).length;
-             
-             const link = document.getElementById('nav-msgs');
-             // Preserve text, update badge
-             link.innerHTML = `Message Center ${unread > 0 ? `<span class="badge">${unread}</span>` : ''}`;
-        }
-        
-        // Typing Logic
-        let typingTimeout;
-        const clientInput = document.getElementById('client-chat-input');
-        
-        clientInput.addEventListener('input', () => {
-             const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
-             localStorage.setItem('typing_' + clientName + '_client', 'true');
-             clearTimeout(typingTimeout);
-             typingTimeout = setTimeout(() => {
-                 localStorage.setItem('typing_' + clientName + '_client', 'false');
-             }, 1500);
+          await loadRequests(currentUid);
+          loadAccountSettings(currentProfile);
+          await loadPreferences(currentUid);
+          await renderClientChat();
+          await updateClientBadge();
         });
-        
-        // Listen for admin typing & new messages
-        window.addEventListener('storage', (e) => {
-             const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
-             
-             if(e.key === 'siteMessages') {
-                 // If we are currently looking at messages, refresh them. 
-                 // If not, update badge.
-                 const isChatOpen = document.getElementById('view-messages').classList.contains('active');
-                 if(isChatOpen) {
-                     // Since we are open, we should technically mark them as read immediately or let next click do it.
-                     // For smoother UX, let's just render. User will likely click/type effectively clearing it.
-                     // Or re-run switchClientTab('messages') logic?
-                     renderClientChat();
-                 } else {
-                     updateClientBadge(); // Increment badge
-                 }
-             }
+      }
 
-             if (e.key === 'typing_' + clientName + '_admin') {
-                const indicator = document.getElementById('client-typing-indicator');
-                if(e.newValue === 'true') indicator.classList.add('active');
-                else indicator.classList.remove('active');
-             }
+      async function loadRequests(clientId) {
+        const response = await getClientGrants(clientId);
+        const appList = document.getElementById('app-list');
+        appList.innerHTML = '';
+
+        if (!response.success || response.grants.length === 0) {
+          appList.innerHTML = `<tr><td colspan="4" style="padding: 1rem; text-align: center; color: var(--muted);">No active applications found.</td></tr>`;
+          return;
+        }
+
+        response.grants.forEach((req) => {
+          const row = document.createElement('tr');
+          row.style.borderBottom = '1px solid var(--border)';
+
+          let statusColor = 'var(--primary)';
+          let statusBg = '#eff6ff';
+          if (req.status === 'submitted') { statusColor = '#2563eb'; statusBg = '#dbeafe'; }
+          if (req.status === 'action-needed') { statusColor = '#dc2626'; statusBg = '#fef2f2'; }
+          if (req.status === 'approved') { statusColor = '#15803d'; statusBg = '#dcfce7'; }
+
+          row.innerHTML = `
+            <td style="padding: 1rem 0.5rem;">${new Date(req.createdAt?.toDate?.() ?? req.createdAt).toLocaleDateString()}</td>
+            <td style="padding: 1rem 0.5rem; font-weight: 600;">${req.projectName || req.grantName || 'Untitled'}</td>
+            <td style="padding: 1rem 0.5rem;">$${Number(req.amount || 0).toLocaleString()}</td>
+            <td style="padding: 1rem 0.5rem;"><span style="color: ${statusColor}; background: ${statusBg}; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700;">${req.status || 'submitted'}</span></td>
+          `;
+          appList.appendChild(row);
         });
+      }
 
-        // Polling (for single browser demo)
-        setInterval(() => {
-             const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
-             if(localStorage.getItem('typing_' + clientName + '_admin') === 'true') {
-                 document.getElementById('client-typing-indicator').classList.add('active');
-             } else {
-                 document.getElementById('client-typing-indicator').classList.remove('active');
-             }
-             
-             // Check badges frequently
-             updateClientBadge();
-             
-             // Reload chat if open and changed
-             if(document.getElementById('view-messages').classList.contains('active')) {
-                  const currentMsgs = localStorage.getItem("siteMessages");
-                  if (currentMsgs !== window.lastKnownMsgs) {
-                     window.lastKnownMsgs = currentMsgs;
-                     // Auto-mark read if active? 
-                     // Let's keep it simple: just render.
-                     renderClientChat();
-                 }
-             }
-        }, 1000);
+      document.getElementById('intake-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-        function sendClientMessage() {
-            const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
-            const input = document.getElementById('client-chat-input');
-            const text = input.value.trim();
-            if(!text) return;
-            
-            saveMessage(clientName, text);
-            input.value = '';
-            localStorage.setItem('typing_' + clientName + '_client', 'false');
-        }
-
-        function handleClientFileUpload(input) {
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
-                const msg = `Shared a file: <br><a href="#" style="text-decoration: underline;">📄 ${file.name}</a>`;
-                
-                saveMessage(clientName, msg);
-                input.value = ''; // Reset
-            }
-        }
-
-        function saveMessage(clientName, text) {
-            const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
-            if(!allMsgs[clientName]) allMsgs[clientName] = [];
-            
-            const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            allMsgs[clientName].push({ sender: 'Client', text: text, time: now, read: false }); // Unread by admin
-            
-            localStorage.setItem("siteMessages", JSON.stringify(allMsgs));
-            renderClientChat();
-        }
-
-
-        const form = document.getElementById("intake-form");
-        const appList = document.getElementById("app-list");
-
-        // Load existing requests from LocalStorage
-        const loadRequests = () => {
-             const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
-             // Filter for this user in a real app, but for now show all or just ours. 
-             // Since we don't have real auth, we'll just show the most recent ones stored.
-             
-             appList.innerHTML = ""; // Clear current mock data
-             
-             if (requests.length === 0) {
-                 appList.innerHTML = `<tr><td colspan="4" style="padding: 1rem; text-align: center; color: var(--muted);">No active applications found.</td></tr>`;
-                 return;
-             }
-
-             requests.forEach((req, index) => {
-                 const row = document.createElement("tr");
-                 row.style.borderBottom = "1px solid var(--border)";
-                 
-                 let statusColor = "var(--primary)";
-                 let statusBg = "#eff6ff";
-                 
-                 if (req.status === "Reviewing") { statusColor = "#2563eb"; statusBg = "#dbeafe"; }
-                 if (req.status === "Action Needed") { statusColor = "#dc2626"; statusBg = "#fef2f2"; }
-
-                 row.innerHTML = `
-                    <td style="padding: 1rem 0.5rem;">${req.date}</td>
-                    <td style="padding: 1rem 0.5rem; font-weight: 600;">${req.projectName}</td>
-                    <td style="padding: 1rem 0.5rem;">$${Number(req.amount).toLocaleString()}</td>
-                    <td style="padding: 1rem 0.5rem;"><span style="color: ${statusColor}; background: ${statusBg}; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700;">${req.status}</span></td>
-                `;
-                appList.appendChild(row);
-             });
+        const grantData = {
+          projectName: e.target['project-name'].value,
+          amount: e.target['amount'].value,
+          description: e.target['description'].value,
+          status: 'submitted'
         };
-        
-        loadRequests();
 
-        form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            
-            const pName = form["project-name"].value;
-            const pAmount = form["amount"].value;
-            const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            
-            // Create new request object
-            const newRequest = {
-                id: Date.now(),
-                clientName: sessionStorage.getItem("clientName") || "Unknown Client",
-                date: today,
-                projectName: pName,
-                amount: pAmount,
-                status: "Received",
-                description: form["description"].value
-            };
+        const added = await createGrant(currentUid, grantData);
+        if (!added.success) {
+          alert('Failed to submit application: ' + added.error);
+          return;
+        }
 
-            // Save to LocalStorage
-            const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
-            requests.unshift(newRequest); // Add to top
-            localStorage.setItem("clientRequests", JSON.stringify(requests));
+        await loadRequests(currentUid);
+        e.target.reset();
+        alert('Application submitted successfully!');
+      });
 
-            loadRequests(); // Refresh table
-            form.reset();
-            alert("Application submitted successfully!");
+      async function loadAccountSettings(profile) {
+        document.getElementById('settings-name').textContent = profile.clientName || profile.fullName || 'Unknown Client';
+        document.getElementById('settings-email').textContent = profile.email || 'not.provided@example.com';
+        document.getElementById('settings-business').textContent = profile.business || 'Not specified';
+        document.getElementById('settings-created').textContent = new Date(profile.createdAt?.toDate?.() ?? profile.createdAt || Date.now()).toLocaleDateString();
+      }
+
+      document.getElementById('password-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentPwd = document.getElementById('current-password').value;
+        const newPwd = document.getElementById('new-password').value;
+        const confirmPwd = document.getElementById('confirm-password').value;
+        const messageEl = document.getElementById('password-message');
+
+        if (newPwd !== confirmPwd) {
+          messageEl.textContent = 'New passwords do not match.';
+          messageEl.style.color = '#dc2626';
+          return;
+        }
+
+        if (newPwd.length < 6) {
+          messageEl.textContent = 'Password must be at least 6 characters.';
+          messageEl.style.color = '#dc2626';
+          return;
+        }
+
+        const user = firebase.auth().currentUser;
+        const credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPwd);
+
+        try {
+          await user.reauthenticateWithCredential(credential);
+          await user.updatePassword(newPwd);
+          messageEl.textContent = 'Password updated successfully!';
+          messageEl.style.color = '#16a34a';
+          e.target.reset();
+          setTimeout(() => messageEl.textContent = '', 3000);
+        } catch (err) {
+          messageEl.textContent = 'Could not update password: ' + err.message;
+          messageEl.style.color = '#dc2626';
+        }
+      });
+
+      async function loadPreferences(clientId) {
+        const response = await getClientPreferences(clientId);
+        if (!response.success) {
+          return;
+        }
+        const prefs = response.preferences || { updates: true, messages: true, news: true };
+        document.getElementById('pref-updates').checked = prefs.updates;
+        document.getElementById('pref-messages').checked = prefs.messages;
+        document.getElementById('pref-news').checked = prefs.news;
+      }
+
+      async function savePreferences() {
+        const prefs = {
+          updates: document.getElementById('pref-updates').checked,
+          messages: document.getElementById('pref-messages').checked,
+          news: document.getElementById('pref-news').checked
+        };
+        const res = await saveClientPreferences(currentUid, prefs);
+        const prefMessage = document.getElementById('pref-message');
+        if (!res.success) {
+          prefMessage.textContent = 'Could not save preferences: ' + res.error;
+          prefMessage.style.color = '#dc2626';
+          return;
+        }
+        prefMessage.textContent = 'Preferences saved successfully!';
+        prefMessage.style.color = '#16a34a';
+        setTimeout(() => prefMessage.textContent = '', 2000);
+      }
+
+      async function renderClientChat() {
+        const response = await getMessages(currentUid);
+        if (!response.success) {
+          return;
+        }
+        const windowEl = document.getElementById('client-chat-window');
+        windowEl.innerHTML = '';
+
+        if (response.messages.length === 0) {
+          windowEl.innerHTML = '<p style="color:var(--muted); text-align: center; margin-top: 2rem;">No messages yet.</p>';
+          return;
+        }
+
+        response.messages.forEach((m) => {
+          const isMe = m.senderId === currentUid;
+          const div = document.createElement('div');
+          div.className = `message ${isMe ? 'sent' : 'received'}`;
+          const label = isMe ? '' : '<strong style="font-size: 0.75rem; display: block; margin-bottom: 2px;">Consultant</strong>';
+          const time = new Date(m.timestamp?.toDate?.() ?? m.timestamp).toLocaleTimeString();
+          div.innerHTML = `${label}${m.message} <span class="message-meta">${time}</span>`;
+          windowEl.appendChild(div);
         });
 
-        // SETTINGS FUNCTIONS
-        function loadAccountSettings() {
-            const clientName = sessionStorage.getItem("clientName") || "Unknown Client";
-            const clientEmail = sessionStorage.getItem("clientEmail") || "not.provided@example.com";
-            const clientBusiness = sessionStorage.getItem("clientBusiness") || "Not specified";
-            const clientCreated = sessionStorage.getItem("clientCreated") || new Date().toLocaleDateString();
-            
-            document.getElementById("settings-name").textContent = clientName;
-            document.getElementById("settings-email").textContent = clientEmail;
-            document.getElementById("settings-business").textContent = clientBusiness;
-            document.getElementById("settings-created").textContent = clientCreated;
+        windowEl.scrollTop = windowEl.scrollHeight;
+      }
+
+      async function markMessagesRead() {
+        const response = await getMessages(currentUid, true);
+        if (!response.success) return;
+        const unread = response.messages;
+        if (!unread.length) return;
+        for (const m of unread) {
+          await markMessageAsRead(m.id);
+        }
+      }
+
+      async function updateClientBadge() {
+        const response = await getMessages(currentUid, true);
+        if (!response.success) {
+          return;
         }
 
-        document.getElementById("password-form")?.addEventListener("submit", function(e) {
-            e.preventDefault();
-            
-            const currentPwd = document.getElementById("current-password").value;
-            const newPwd = document.getElementById("new-password").value;
-            const confirmPwd = document.getElementById("confirm-password").value;
-            const messageEl = document.getElementById("password-message");
-            
-            if (newPwd !== confirmPwd) {
-                messageEl.textContent = "New passwords do not match.";
-                messageEl.style.color = "#dc2626";
-                return;
-            }
-            
-            if (newPwd.length < 6) {
-                messageEl.textContent = "Password must be at least 6 characters.";
-                messageEl.style.color = "#dc2626";
-                return;
-            }
-            
-            const storedAccounts = JSON.parse(localStorage.getItem("clientAccounts") || "[]");
-            const userAccount = storedAccounts.find(acc => acc.name === sessionStorage.getItem("clientName"));
-            
-            if (!userAccount || userAccount.password !== currentPwd) {
-                messageEl.textContent = "Current password is incorrect.";
-                messageEl.style.color = "#dc2626";
-                return;
-            }
-            
-            userAccount.password = newPwd;
-            localStorage.setItem("clientAccounts", JSON.stringify(storedAccounts));
-            
-            messageEl.textContent = "Password updated successfully!";
-            messageEl.style.color = "#16a34a";
-            
-            this.reset();
-            setTimeout(() => messageEl.textContent = "", 3000);
-        });
+        const link = document.getElementById('nav-msgs');
+        link.innerHTML = `Message Center ${response.messages.length > 0 ? `<span class="badge">${response.messages.length}</span>` : ''}`;
+      }
 
-        function savePreferences() {
-            const prefs = {
-                updates: document.getElementById("pref-updates").checked,
-                messages: document.getElementById("pref-messages").checked,
-                news: document.getElementById("pref-news").checked
-            };
-            
-            localStorage.setItem("clientPreferences", JSON.stringify(prefs));
-            
-            const prefMessage = document.getElementById("pref-message");
-            prefMessage.textContent = "Preferences saved successfully!";
-            prefMessage.style.color = "#16a34a";
-            
-            setTimeout(() => prefMessage.textContent = "", 2000);
+      async function sendClientMessage() {
+        const input = document.getElementById('client-chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        await sendMessage(currentUid, 'admin', text);
+        input.value = '';
+        await renderClientChat();
+      }
+
+      async function clientLogout() {
+        await signOutUser();
+        window.location.href = 'login.html';
+      }
+
+      async function deleteClientAccount() {
+        if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
+        try {
+          await firebase.firestore().collection('clients').doc(currentUid).delete();
+          // Optionally delete other collections for this user
+          await deleteCurrentUser();
+          window.location.href = 'index.html';
+        } catch (error) {
+          alert('Could not delete account: ' + error.message);
         }
+      }
 
-        function clientLogout() {
-            sessionStorage.removeItem("clientAccess");
-            sessionStorage.removeItem("clientName");
-            sessionStorage.removeItem("clientEmail");
-            sessionStorage.removeItem("clientBusiness");
-            sessionStorage.removeItem("clientCreated");
-            window.location.href = "index.html";
-        }
-
-        // Load preferences on page load
-        window.addEventListener("load", function() {
-            const prefs = JSON.parse(localStorage.getItem("clientPreferences") || '{"updates":true,"messages":true,"news":true}');
-            document.getElementById("pref-updates").checked = prefs.updates;
-            document.getElementById("pref-messages").checked = prefs.messages;
-            document.getElementById("pref-news").checked = prefs.news;
-        });
-
-        function deleteClientAccount() {
-            const clientName = sessionStorage.getItem("clientName");
-            
-            if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-                return;
-            }
-            
-            const password = prompt("Please enter your password to confirm account deletion:");
-            if (!password) {
-                return;
-            }
-            
-            const clientAccounts = JSON.parse(localStorage.getItem("clientAccounts") || "[]");
-            const userAccount = clientAccounts.find(acc => acc.name === clientName);
-            
-            if (!userAccount || userAccount.password !== password) {
-                alert("Password is incorrect. Account deletion cancelled.");
-                return;
-            }
-            
-            if (!confirm("This is your final warning. Your account and all data will be permanently deleted. Continue?")) {
-                return;
-            }
-            
-            // Remove account from storage
-            const updatedAccounts = clientAccounts.filter(acc => acc.name !== clientName);
-            localStorage.setItem("clientAccounts", JSON.stringify(updatedAccounts));
-            
-            // Remove any stored data associated with this client
-            localStorage.removeItem("clientPreferences");
-            
-            // Clear session
-            sessionStorage.removeItem("clientAccess");
-            sessionStorage.removeItem("clientName");
-            sessionStorage.removeItem("clientEmail");
-            sessionStorage.removeItem("clientBusiness");
-            sessionStorage.removeItem("clientCreated");
-            
-            alert("Your account has been permanently deleted.");
-            window.location.href = "index.html";
-        }
+      initClientDashboard();
     </script>
   </body>
 </html>

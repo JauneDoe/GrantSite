@@ -6,11 +6,11 @@
     <title>Owner Access</title>
     <meta name="description" content="Private owner access for site updates." />
     <link rel="stylesheet" href="styles.css" />
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js"></script>
+    <!-- Firebase SDK (compat mode for global firebase namespace) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
     <!-- Firebase Configuration and Helpers -->
     <script src="firebase-config.js"></script>
     <script src="firebase-auth.js"></script>
@@ -52,16 +52,27 @@
           <a href="client-register.html" class="button button-ghost" style="width: 100%;">Create Account</a>
         </div>
       </form>
+
+      <div style="margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--border); border-radius: 12px; background: #fff;">
+        <h3 style="margin-bottom: 1rem;">Client Login</h3>
+        <form id="client-login-form" class="contact-form">
+          <div class="form-field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required />
+          </div>
+          <div class="form-field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required />
+          </div>
+          <button class="button button-primary" type="submit">Sign in as Client</button>
+          <p id="client-login-error" role="alert" style="color:#dc2626; margin-top: 0.5rem;"></p>
+        </form>
+      </div>
     </main>
 
     <script>
-      // Ensure any previous session is cleared before user can login again
-      sessionStorage.removeItem("clientAccess");
-      sessionStorage.removeItem("clientName");
-      sessionStorage.removeItem("clientEmail");
-      sessionStorage.removeItem("clientBusiness");
-      sessionStorage.removeItem("clientCreated");
-      sessionStorage.removeItem("ownerAccess");
+      // Owner auth is currently handled with hardcoded username/password and not sessionStorage.
+      // Client auth is managed by Firebase Auth state.
 
       const OWNER_USERNAME = "Owner";
       const OWNER_PASSWORD = "Easyas123";
@@ -69,7 +80,7 @@
       const form = document.getElementById("login-form");
       const error = document.getElementById("login-error");
 
-      form.addEventListener("submit", (event) => {
+      form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const username = form.username.value.trim();
         const password = form.password.value.trim();
@@ -81,6 +92,23 @@
         }
 
         error.textContent = "Incorrect username or password.";
+      });
+
+      const clientForm = document.getElementById("client-login-form");
+      const clientError = document.getElementById("client-login-error");
+
+      clientForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const email = clientForm.email.value.trim();
+        const password = clientForm.password.value.trim();
+
+        const result = await signInUser(email, password);
+        if (!result.success) {
+          clientError.textContent = "Login failed: " + result.error;
+          return;
+        }
+
+        window.location.href = "client-dashboard.html";
       });
     </script>
   </body>

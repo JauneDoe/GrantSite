@@ -211,3 +211,38 @@ async function getSiteContent(pageId) {
     return { success: false, error: error.message };
   }
 }
+
+/**
+ * Save client preferences
+ * @param {string} clientId - User ID
+ * @param {Object} preferences - preferences object
+ * @returns {Promise<Object>} success status
+ */
+async function saveClientPreferences(clientId, preferences) {
+  try {
+    await firebase.firestore().collection("client-preferences").doc(clientId).set({
+      ...preferences,
+      updatedAt: new Date()
+    }, { merge: true });
+    return { success: true };
+  } catch (error) {
+    console.error("Save preferences error:", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Get client preferences
+ * @param {string} clientId - User ID
+ * @returns {Promise<Object>} preferences
+ */
+async function getClientPreferences(clientId) {
+  try {
+    const doc = await firebase.firestore().collection("client-preferences").doc(clientId).get();
+    if (doc.exists) return { success: true, preferences: doc.data() };
+    else return { success: true, preferences: { updates: true, messages: true, news: true } };
+  } catch (error) {
+    console.error("Get preferences error:", error.message);
+    return { success: false, error: error.message };
+  }
+}
