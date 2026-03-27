@@ -105,11 +105,11 @@
                     <div style="border-right: 1px solid var(--border); overflow-y: auto; background: #fafafa;">
                         <h4 style="padding: 1rem; border-bottom: 1px solid var(--border); margin: 0; position: sticky; top: 0; background: #fafafa;">Clients</h4>
                         <div style="padding: 0.75rem; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 40px; z-index: 1;">
-                            <div style="position:relative;">
-                                <input id="client-search-input" type="text" autocomplete="off" placeholder="Search or select client" style="width:100%; padding:0.5rem; border:1px solid var(--border); border-radius:6px;" />
-                                <div id="client-autocomplete-list" style="position:absolute; left:0; right:0; top:100%; background:#fff; border:1px solid var(--border); border-radius:0 0 6px 6px; box-shadow:0 2px 8px rgba(0,0,0,0.07); z-index:10; display:none;"></div>
-                            </div>
-                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;">Type to search and select a client. Only clients with threads are shown below by default.</div>
+                            <input id="client-search-input" type="text" placeholder="Search name or email" style="width:100%; padding:0.5rem; border:1px solid var(--border); border-radius:6px;" />
+                            <select id="client-select" style="margin-top:0.5rem; width:100%; padding:0.45rem; border:1px solid var(--border); border-radius:6px;">
+                                <option value="">Select or search client</option>
+                            </select>
+                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;"></div>
                         </div>
                         <div id="msg-client-list">
                             <!-- Populated by JS -->
@@ -222,144 +222,131 @@
       let chatUnsubscribe = null;
 
       async function loadMessageClients() {
-          async function loadMessageClients() {
-              const list = document.getElementById('msg-client-list');
-              list.innerHTML = '';
+          const list = document.getElementById('msg-client-list');
+          list.innerHTML = '';
 
-              const searchInput = document.getElementById('client-search-input');
-              const autocompleteList = document.getElementById('client-autocomplete-list');
-              if (searchInput && !searchInput.dataset.bound) {
-                  searchInput.addEventListener('input', () => loadMessageClients());
-                  searchInput.addEventListener('focus', () => loadMessageClients());
-                  document.addEventListener('click', (e) => {
-                      if (!autocompleteList.contains(e.target) && e.target !== searchInput) {
-                          autocompleteList.style.display = 'none';
-                      }
-                  });
-                  searchInput.dataset.bound = '1';
-              }
-              const searchTerm = searchInput?.value?.trim().toLowerCase() || '';
-
-              // Get registered clients from Firestore
-              const clientsSnapshot = await firebase.firestore().collection('clients').get();
-              const clients = [];
-              clientsSnapshot.forEach((doc) => {
-                  clients.push({ id: doc.id, ...doc.data() });
-              });
-
-              if (clients.length === 0) {
-                  list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">No clients found.</div>`;
-                  return;
-              }
-
-              const messagesResp = await getMessages('admin', false);
-              if (!messagesResp.success) {
-                list.innerHTML = `<div style="padding: 1rem; color: #dc2626; font-size: 0.9rem;">Could not load messages: ${messagesResp.error}</div>`;
-                return;
-              }
-
-              const allMsgs = messagesResp.messages;
-              const threadClientIds = new Set();
-              allMsgs.forEach(m => {
-                  if (m.senderId === 'admin' && m.recipientId) threadClientIds.add(m.recipientId);
-                  if (m.recipientId === 'admin' && m.senderId) threadClientIds.add(m.senderId);
-              });
-
-              // Autocomplete logic
-              if (autocompleteList) {
-                  autocompleteList.innerHTML = '';
-                  let filtered = clients.filter(client => {
-                      const fullText = `${client.clientName || ''} ${client.fullName || ''} ${client.email || ''}`.toLowerCase();
-                      return searchTerm && fullText.includes(searchTerm);
-                  });
-                  if (searchTerm && filtered.length > 0) {
-                      filtered.slice(0, 10).forEach(client => {
-                          const name = client.clientName || client.fullName || client.email || 'Unknown';
-                          const div = document.createElement('div');
-                          div.textContent = `${name} (${client.email || 'no-email'})`;
-                          div.style.padding = '0.5rem 0.75rem';
-                          div.style.cursor = 'pointer';
-                          div.onmousedown = (e) => { // use onmousedown to avoid blur
-                              e.preventDefault();
-                              searchInput.value = name;
-                              autocompleteList.style.display = 'none';
-                              openAdminChat(client.id, name);
-                          };
-                          autocompleteList.appendChild(div);
-                      });
-                      autocompleteList.style.display = 'block';
-                  } else {
-                      autocompleteList.style.display = 'none';
-                  }
-              }
-
-              // Main list: only show threads unless searching
-              const filteredClients = clients.filter(client => {
-                  const fullText = `${client.clientName || ''} ${client.fullName || ''} ${client.email || ''}`.toLowerCase();
-                  if (searchTerm) {
-                      return fullText.includes(searchTerm);
-                  }
-                  return threadClientIds.has(client.id);
-              });
-
-              if (filteredClients.length === 0) {
-                  list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">${searchTerm ? 'No clients match this search.' : 'No clients with message history. Use search to start a thread.'}</div>`;
-                  return;
-              }
-
-              filteredClients.forEach(client => {
-                  const hasThread = threadClientIds.has(client.id);
-                  const unreadCount = allMsgs.filter(m => m.senderId === client.id && m.recipientId === 'admin' && !m.read).length;
-
-                  const div = document.createElement('div');
-                  div.setAttribute('data-client-id', client.id);
-                  div.style.padding = '0.75rem 1rem';
-                  div.style.cursor = 'pointer';
-                  div.style.borderBottom = '1px solid var(--border)';
-                  div.style.fontSize = '0.9rem';
-                  div.style.display = 'flex';
-                  div.style.justifyContent = 'space-between';
-                  div.style.alignItems = 'center';
-
-                  const leftBox = document.createElement('span');
-                  leftBox.textContent = client.clientName || client.fullName || client.email;
-                  if (!hasThread) {
-                    const label = document.createElement('span');
-                    label.textContent = ' (start chat)';
-                    label.style.color = '#555';
-                    leftBox.appendChild(label);
-                  }
-
-                  const rightBox = document.createElement('span');
-                  if (unreadCount > 0) {
-                      const badge = document.createElement('span');
-                      badge.className = 'badge';
-                      badge.textContent = unreadCount;
-                      rightBox.appendChild(badge);
-                  }
-
-                  const status = document.createElement('span');
-                  status.textContent = hasThread ? '' : '• new';
-                  status.style.marginLeft = '0.5rem';
-                  status.style.color = '#999';
-                  if (!hasThread) rightBox.appendChild(status);
-
-                  div.appendChild(leftBox);
-                  div.appendChild(rightBox);
-
-                  div.onclick = () => openAdminChat(client.id, client.clientName || client.fullName || client.email);
-
-                  if (activeChatClientId === client.id) {
-                      div.style.background = '#eef2ff';
-                      div.style.fontWeight = '600';
-                  } else {
-                      div.onmouseover = () => div.style.background = '#eee';
-                      div.onmouseout = () => div.style.background = 'transparent';
-                  }
-
-                  list.appendChild(div);
-              });
+          const searchInput = document.getElementById('client-search-input');
+          if (searchInput && !searchInput.dataset.bound) {
+              searchInput.addEventListener('input', () => loadMessageClients());
+              searchInput.dataset.bound = '1';
           }
+          const searchTerm = searchInput?.value?.trim().toLowerCase() || '';
+
+          // Get registered clients from Firestore
+          const clientsSnapshot = await firebase.firestore().collection('clients').get();
+          const clients = [];
+          clientsSnapshot.forEach((doc) => {
+              clients.push({ id: doc.id, ...doc.data() });
+          });
+
+          if (clients.length === 0) {
+              list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">No clients found.</div>`;
+              return;
+          }
+
+          const messagesResp = await getMessages('admin', false);
+          if (!messagesResp.success) {
+            list.innerHTML = `<div style="padding: 1rem; color: #dc2626; font-size: 0.9rem;">Could not load messages: ${messagesResp.error}</div>`;
+            return;
+          }
+
+          const allMsgs = messagesResp.messages;
+          const threadClientIds = new Set();
+          allMsgs.forEach(m => {
+              if (m.senderId === 'admin' && m.recipientId) threadClientIds.add(m.recipientId);
+              if (m.recipientId === 'admin' && m.senderId) threadClientIds.add(m.senderId);
+          });
+
+          const clientSelect = document.getElementById('client-select');
+          if (clientSelect) {
+            clientSelect.innerHTML = '<option value="">Select or search client</option>';
+            clients.forEach(client => {
+                const name = client.clientName || client.fullName || client.email || 'Unknown';
+                const opt = document.createElement('option');
+                opt.value = client.id;
+                opt.textContent = `${name} (${client.email || 'no-email'})`;
+                clientSelect.appendChild(opt);
+            });
+
+            clientSelect.onchange = () => {
+              const selectedId = clientSelect.value;
+              if (!selectedId) return;
+              const selected = clients.find(c => c.id === selectedId);
+              if (selected) {
+                document.getElementById('client-search-input').value = selected.clientName || selected.fullName || selected.email || '';
+                openAdminChat(selected.id, selected.clientName || selected.fullName || selected.email || 'Client');
+              }
+            };
+          }
+
+          const filteredClients = clients.filter(client => {
+              const fullText = `${client.clientName || ''} ${client.fullName || ''} ${client.email || ''}`.toLowerCase();
+              // If typing, include any matching client. Otherwise limit to active threads.
+              if (searchTerm) {
+                  return fullText.includes(searchTerm);
+              }
+              return threadClientIds.has(client.id);
+          });
+
+          const clientSelect = document.getElementById('client-select');
+          if (clientSelect) {
+            clientSelect.innerHTML = '<option value="">Select or search client</option>';
+            filteredClients.forEach(client => {
+                const name = client.clientName || client.fullName || client.email || 'Unknown';
+                const opt = document.createElement('option');
+                opt.value = client.id;
+                opt.textContent = `${name} (${client.email || 'no-email'})`;
+                clientSelect.appendChild(opt);
+            });
+          }
+
+          if (filteredClients.length === 0) {
+              list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">${searchTerm ? 'No clients match this search.' : 'No clients with message history. Use search to start a thread.'}</div>`;
+              return;
+          }
+
+          filteredClients.forEach(client => {
+              const hasThread = threadClientIds.has(client.id);
+              const unreadCount = allMsgs.filter(m => m.senderId === client.id && m.recipientId === 'admin' && !m.read).length;
+
+              const div = document.createElement('div');
+              div.setAttribute('data-client-id', client.id);
+              div.style.padding = '0.75rem 1rem';
+              div.style.cursor = 'pointer';
+              div.style.borderBottom = '1px solid var(--border)';
+              div.style.fontSize = '0.9rem';
+              div.style.display = 'flex';
+              div.style.justifyContent = 'space-between';
+              div.style.alignItems = 'center';
+
+              const leftBox = document.createElement('span');
+              leftBox.textContent = client.clientName || client.fullName || client.email;
+              if (!hasThread) {
+                const label = document.createElement('span');
+                label.textContent = ' (start chat)';
+                label.style.color = '#555';
+                leftBox.appendChild(label);
+              }
+
+              const rightBox = document.createElement('span');
+              if (unreadCount > 0) {
+                  const badge = document.createElement('span');
+                  badge.className = 'badge';
+                  badge.textContent = unreadCount;
+                  rightBox.appendChild(badge);
+              }
+
+              const status = document.createElement('span');
+              status.textContent = hasThread ? '' : '• new';
+              status.style.marginLeft = '0.5rem';
+              status.style.color = '#999';
+              if (!hasThread) rightBox.appendChild(status);
+
+              div.appendChild(leftBox);
+              div.appendChild(rightBox);
+
+              div.onclick = () => openAdminChat(client.id, client.clientName || client.fullName || client.email);
+
               if (activeChatClientId === client.id) {
                   div.style.background = '#eef2ff';
                   div.style.fontWeight = '600';
