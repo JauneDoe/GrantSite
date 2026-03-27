@@ -290,7 +290,7 @@
             const allMsgs = await getMessages('admin');
             if (!allMsgs.success) return;
             const convo = allMsgs.messages.filter((m) => (m.senderId === 'admin' && m.recipientId === activeChatClientId) || (m.senderId === activeChatClientId && m.recipientId === 'admin'));
-            convo.sort((a,b) => (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)) - (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)));
+            convo.sort((a,b) => (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)) - (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)));
             response = { success: true, messages: convo };
           }
 
@@ -368,9 +368,9 @@
           }
       });
       
-      // Polling for same-tab demo purposes 
+      // Polling for updates (lower frequency to avoid blinking)
       setInterval(async () => {
-         await updateAdminGlobalBadge(); // Always check global
+         await updateAdminGlobalBadge();
          
          if(!activeChatClientId) return;
          if(localStorage.getItem('typing_' + activeChatClientId + '_client') === 'true') {
@@ -379,9 +379,10 @@
              document.getElementById('admin-typing-indicator').classList.remove('active');
          }
 
+         // Only refresh full chat when a new message could be available,
+         // not every second to avoid flicker.
          await loadMessageClients();
-         await renderChatMessages();
-      }, 1000);
+      }, 5000);
 
       async function updateAdminGlobalBadge() {
           const response = await getMessages('admin', true);

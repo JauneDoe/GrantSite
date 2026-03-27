@@ -158,7 +158,7 @@ async function getMessages(userId, unreadOnly = false) {
       });
     }
 
-    messages.sort((a,b) => (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)) - (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)));
+    messages.sort((a,b) => (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)) - (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)));
 
     return { success: true, messages: messages };
   } catch (error) {
