@@ -190,7 +190,7 @@ async function getConversation(userId, otherId) {
     sentSnap.forEach((doc) => messages.push({ id: doc.id, ...doc.data() }));
     receivedSnap.forEach((doc) => messages.push({ id: doc.id, ...doc.data() }));
 
-    messages.sort((a,b) => (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)) - (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)));
+    messages.sort((a,b) => (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)) - (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)));
 
     return { success: true, messages };
   } catch (error) {
@@ -199,11 +199,59 @@ async function getConversation(userId, otherId) {
   }
 }
 
+/**
+ * Real-time listener for conversation between two users
+ * @param {string} userId
+ * @param {string} otherId
+ * @param {Function} callback - Called with { success, messages } on each update
+ * @returns {Function} Unsubscribe function
+ */
+function onConversationSnapshot(userId, otherId, callback) {
+  const queries = [
+    firebase.firestore().collection("messages")
+      .where("senderId", "==", userId)
+      .where("recipientId", "==", otherId),
+    firebase.firestore().collection("messages")
+      .where("senderId", "==", otherId)
+      .where("recipientId", "==", userId)
+  ];
+
+  const unsubscribers = [];
+  const messageMap = new Map();
+
+  const sendUpdate = () => {
+    const messages = Array.from(messageMap.values());
+    messages.sort((a,b) => (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)) - (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)));
+    callback({ success: true, messages });
+  };
+
+  queries.forEach((query, index) => {
+    const unsub = query.onSnapshot((snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        const msgId = change.doc.id;
+        if (change.type === "added" || change.type === "modified") {
+          messageMap.set(msgId, { id: msgId, ...change.doc.data() });
+        } else if (change.type === "removed") {
+          messageMap.delete(msgId);
+        }
+      });
+      sendUpdate();
+    }, (error) => {
+      console.error("Conversation snapshot error:", error.message);
+      callback({ success: false, error: error.message });
+    });
+    unsubscribers.push(unsub);
+  });
+
+  return () => unsubscribers.forEach(unsub => unsub());
+}
+
 // Ensure function is globally available if 3rd-party environment scope is limited
 window.getConversation = getConversation;
 window.getMessages = getMessages;
 window.sendMessage = sendMessage;
 window.markMessageAsRead = markMessageAsRead;
+window.onConversationSnapshot = onConversationSnapshot;
 
 /**
  * Mark a message as read

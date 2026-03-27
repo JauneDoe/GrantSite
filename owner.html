@@ -211,6 +211,7 @@
       // MESSAGING LOGIC
       let activeChatClientId = null;
       let activeChatClientName = null;
+      let chatUnsubscribe = null;
 
       async function loadMessageClients() {
           const list = document.getElementById('msg-client-list');
@@ -268,6 +269,12 @@
       }
 
       async function openAdminChat(clientId, clientName) {
+          // Unsubscribe from previous chat
+          if (chatUnsubscribe) {
+              chatUnsubscribe();
+              chatUnsubscribe = null;
+          }
+
           activeChatClientId = clientId;
           activeChatClientName = clientName;
           document.getElementById('chat-header').textContent = "Chat with " + clientName;
@@ -277,7 +284,38 @@
 
           await markConversationRead(clientId);
           loadMessageClients(); // Re-render list to clear badge
-          await renderChatMessages();
+
+          // Set up real-time listener for this conversation
+          if (typeof onConversationSnapshot === 'function') {
+              chatUnsubscribe = onConversationSnapshot('admin', clientId, (response) => {
+                  if (response.success) {
+                      renderChatMessagesFromData(response.messages);
+                  }
+              });
+          } else {
+              await renderChatMessages();
+          }
+      }
+
+      function renderChatMessagesFromData(msgs) {
+          const window = document.getElementById('chat-window');
+          window.innerHTML = '';
+          if(!msgs || msgs.length === 0) {
+              window.innerHTML = `<p style="color:var(--muted); text-align: center; margin-top: 2rem;">No messages yet. Say hello!</p>`;
+              return;
+          }
+
+          msgs.forEach(m => {
+              const isMe = m.senderId === 'admin';
+              const div = document.createElement('div');
+              div.className = `message ${isMe ? 'sent' : 'received'}`;
+              const senderLabel = isMe ? '<strong style="font-size: 0.75rem; display: block; margin-bottom: 2px;">You</strong>' : `<strong style="font-size: 0.75rem; display: block; margin-bottom: 2px;">${activeChatClientName}</strong>`;
+              const time = new Date(m.timestamp?.toDate?.() ?? m.timestamp).toLocaleTimeString();
+              div.innerHTML = `${senderLabel}${m.message} <span class="message-meta">${time}</span>`;
+              window.appendChild(div);
+          });
+
+          window.scrollTop = window.scrollHeight;
       }
 
       async function renderChatMessages() {
@@ -296,25 +334,7 @@
 
           if (!response.success) return;
 
-          const window = document.getElementById('chat-window');
-          const msgs = response.messages || [];
-
-          window.innerHTML = '';
-          if(msgs.length === 0) {
-              window.innerHTML = `<p style="color:var(--muted); text-align: center; margin-top: 2rem;">No messages yet. Say hello!</p>`;
-          }
-
-          msgs.forEach(m => {
-              const isMe = m.senderId === 'admin';
-              const div = document.createElement('div');
-              div.className = `message ${isMe ? 'sent' : 'received'}`;
-              const senderLabel = isMe ? '<strong style="font-size: 0.75rem; display: block; margin-bottom: 2px;">You</strong>' : `<strong style="font-size: 0.75rem; display: block; margin-bottom: 2px;">${activeChatClientName}</strong>`;
-              const time = new Date(m.timestamp?.toDate?.() ?? m.timestamp).toLocaleTimeString();
-              div.innerHTML = `${senderLabel}${m.message} <span class="message-meta">${time}</span>`;
-              window.appendChild(div);
-          });
-
-          window.scrollTop = window.scrollHeight;
+          renderChatMessagesFromData(response.messages || []);
       }
 
       async function markConversationRead(clientId) {

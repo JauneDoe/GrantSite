@@ -242,6 +242,7 @@
     <script>
       let currentUid = null;
       let currentProfile = null;
+      let chatUnsubscribe = null;
 
       function switchClientTab(tabName) {
         document.querySelectorAll('.dash-view').forEach(el => el.classList.remove('active'));
@@ -255,7 +256,23 @@
 
         if (tabName === 'messages') {
           markMessagesRead();
-          renderClientChat();
+          
+          // Unsubscribe from previous listener if any
+          if (chatUnsubscribe) {
+              chatUnsubscribe();
+              chatUnsubscribe = null;
+          }
+          
+          // Set up real-time listener
+          if (typeof onConversationSnapshot === 'function') {
+              chatUnsubscribe = onConversationSnapshot(currentUid, 'admin', (response) => {
+                  if (response.success) {
+                      renderClientChatFromData(response.messages);
+                  }
+              });
+          } else {
+              renderClientChat();
+          }
           updateClientBadge();
         }
 
@@ -415,6 +432,28 @@
         setTimeout(() => prefMessage.textContent = '', 2000);
       }
 
+      function renderClientChatFromData(messages) {
+        const windowEl = document.getElementById('client-chat-window');
+        windowEl.innerHTML = '';
+
+        if (!messages || messages.length === 0) {
+          windowEl.innerHTML = '<p style="color:var(--muted); text-align: center; margin-top: 2rem;">No messages yet.</p>';
+          return;
+        }
+
+        messages.forEach((m) => {
+          const isMe = m.senderId === currentUid;
+          const div = document.createElement('div');
+          div.className = `message ${isMe ? 'sent' : 'received'}`;
+          const label = isMe ? '' : '<strong style="font-size: 0.75rem; display: block; margin-bottom: 2px;">Consultant</strong>';
+          const time = new Date(m.timestamp?.toDate?.() ?? m.timestamp).toLocaleTimeString();
+          div.innerHTML = `${label}${m.message} <span class="message-meta">${time}</span>`;
+          windowEl.appendChild(div);
+        });
+
+        windowEl.scrollTop = windowEl.scrollHeight;
+      }
+
       async function renderClientChat() {
         let response;
 
@@ -427,7 +466,7 @@
           }
 
           const convo = allMessages.messages.filter((m) => (m.senderId === currentUid && m.recipientId === 'admin') || (m.senderId === 'admin' && m.recipientId === currentUid));
-          convo.sort((a,b) => (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)) - (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)));
+          convo.sort((a,b) => (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)) - (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)));
           response = { success: true, messages: convo };
         }
 
@@ -435,25 +474,7 @@
           return;
         }
 
-        const windowEl = document.getElementById('client-chat-window');
-        windowEl.innerHTML = '';
-
-        if (response.messages.length === 0) {
-          windowEl.innerHTML = '<p style="color:var(--muted); text-align: center; margin-top: 2rem;">No messages yet.</p>';
-          return;
-        }
-
-        response.messages.forEach((m) => {
-          const isMe = m.senderId === currentUid;
-          const div = document.createElement('div');
-          div.className = `message ${isMe ? 'sent' : 'received'}`;
-          const label = isMe ? '' : '<strong style="font-size: 0.75rem; display: block; margin-bottom: 2px;">Consultant</strong>';
-          const time = new Date(m.timestamp?.toDate?.() ?? m.timestamp).toLocaleTimeString();
-          div.innerHTML = `${label}${m.message} <span class="message-meta">${time}</span>`;
-          windowEl.appendChild(div);
-        });
-
-        windowEl.scrollTop = windowEl.scrollHeight;
+        renderClientChatFromData(response.messages || []);
       }
 
       async function markMessagesRead() {
