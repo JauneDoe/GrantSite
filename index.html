@@ -386,7 +386,7 @@
           </p>
         </div>
         <div class="contact-grid">
-          <form class="card contact-form">
+          <form id="public-contact-form" class="card contact-form">
             <div class="form-field">
               <label for="contact-name" data-edit-key="contactNameLabel">Name</label>
               <input type="text" id="contact-name" name="name" placeholder="Your name" required />
@@ -414,6 +414,7 @@
             <button class="button button-primary" type="submit" data-edit-key="contactButtonText">
               Send Message
             </button>
+            <p id="contact-form-status" style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--muted);"></p>
           </form>
           <div class="card contact-details">
             <h3 data-edit-key="contactEmailTitle">Email</h3>
@@ -565,6 +566,77 @@
             .forEach((openCard) => openCard.classList.remove("is-open"));
         }
       });
+
+      const normalizeGuestEmail = (email) => (email || "").trim().toLowerCase();
+      const sanitizeText = (value) => String(value || "").trim().replace(/\s+/g, " ");
+      const buildGuestSenderId = (email) => `guest:${normalizeGuestEmail(email)}`;
+      const getErrorCode = (error) => error?.code || error?.message || "";
+
+      const publicContactForm = document.getElementById("public-contact-form");
+      const contactStatus = document.getElementById("contact-form-status");
+
+      if (publicContactForm && contactStatus) {
+        publicContactForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          const nameInput = document.getElementById("contact-name");
+          const emailInput = document.getElementById("contact-email");
+          const messageInput = document.getElementById("contact-message");
+          const submitBtn = publicContactForm.querySelector("button[type='submit']");
+
+          const guestName = sanitizeText(nameInput?.value);
+          const guestEmail = normalizeGuestEmail(emailInput?.value);
+          const guestMessage = String(messageInput?.value || "").trim();
+
+          if (!guestName || !guestEmail || !guestMessage) {
+            contactStatus.textContent = "Please complete all fields before sending.";
+            contactStatus.style.color = "#dc2626";
+            return;
+          }
+
+          if (submitBtn) submitBtn.disabled = true;
+          contactStatus.textContent = "Sending your message...";
+          contactStatus.style.color = "var(--muted)";
+
+          const payload = {
+              senderId: buildGuestSenderId(guestEmail),
+              recipientId: "admin",
+              message: guestMessage,
+              read: false,
+              timestamp: new Date(),
+              guestName: guestName,
+              guestEmail: guestEmail,
+              source: "public-contact"
+          };
+
+          try {
+            await firebase.firestore().collection("messages").add(payload);
+
+            publicContactForm.reset();
+            contactStatus.textContent = "Message sent. We will follow up soon.";
+            contactStatus.style.color = "#15803d";
+          } catch (error) {
+            const code = String(getErrorCode(error));
+            if (code.includes("permission-denied")) {
+              try {
+                await firebase.auth().signInAnonymously();
+                await firebase.firestore().collection("messages").add(payload);
+                publicContactForm.reset();
+                contactStatus.textContent = "Message sent. We will follow up soon.";
+                contactStatus.style.color = "#15803d";
+              } catch (retryError) {
+                contactStatus.textContent = "Unable to send message. Please email us directly for now.";
+                contactStatus.style.color = "#dc2626";
+              }
+            } else {
+              contactStatus.textContent = "Unable to send message right now. Please try again shortly.";
+              contactStatus.style.color = "#dc2626";
+            }
+          } finally {
+            if (submitBtn) submitBtn.disabled = false;
+          }
+        });
+      }
     </script>
 
     <footer class="site-footer">

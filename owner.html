@@ -103,13 +103,13 @@
                 <div class="card" style="display: grid; grid-template-columns: 250px 1fr; height: 60vh; padding: 0; overflow: hidden;">
                     <!-- List -->
                     <div style="border-right: 1px solid var(--border); overflow-y: auto; background: #fafafa;">
-                        <h4 style="padding: 1rem; border-bottom: 1px solid var(--border); margin: 0; position: sticky; top: 0; background: #fafafa;">Clients</h4>
+                        <h4 style="padding: 1rem; border-bottom: 1px solid var(--border); margin: 0; position: sticky; top: 0; background: #fafafa;">Conversations</h4>
                         <div id="client-search-wrap" style="padding: 0.75rem; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 40px; z-index: 1;">
                             <div style="position: relative;">
                                 <input id="client-search-input" type="text" autocomplete="off" placeholder="Search name or email" style="width:100%; padding:0.5rem; border:1px solid var(--border); border-radius:6px;" />
                                 <div id="client-autocomplete-list" style="position:absolute; left:0; right:0; top:100%; margin-top:0.25rem; background:#fff; border:1px solid var(--border); border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,0.08); max-height:220px; overflow-y:auto; z-index:50; display:none;"></div>
                             </div>
-                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;">Click the search box to view all client accounts, then type to filter.</div>
+                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;">Click the search box to view all client and visitor conversations, then type to filter.</div>
                         </div>
                         <div id="msg-client-list">
                             <!-- Populated by JS -->
@@ -238,7 +238,27 @@
       let currentOwnerUser = null;
       let availableChatClients = [];
 
+      function isGuestSenderId(senderId) {
+          return typeof senderId === 'string' && senderId.startsWith('guest:');
+      }
+
+      function extractGuestEmail(senderId) {
+          return isGuestSenderId(senderId) ? senderId.slice(6) : '';
+      }
+
+      function getMessageTimeValue(message) {
+          return new Date(message?.timestamp?.toDate?.() ?? message?.timestamp ?? 0).getTime();
+      }
+
       function getClientDisplayName(client) {
+          if (client?.isGuest) {
+              const guestName = client.clientName || client.fullName;
+              const guestEmail = client.email || extractGuestEmail(client.id);
+              if (guestName && guestEmail) return `Visitor: ${guestName} (${guestEmail})`;
+              if (guestName) return `Visitor: ${guestName}`;
+              if (guestEmail) return `Visitor: ${guestEmail}`;
+              return 'Visitor';
+          }
           return client.clientName || client.fullName || client.email || 'Unknown Client';
       }
 
@@ -346,16 +366,6 @@
               return !isSelf && role !== 'owner';
           });
 
-          availableChatClients = eligibleClients;
-          if (document.activeElement === searchInput) {
-              renderClientAutocomplete(searchInput.value, true);
-          }
-
-          if (eligibleClients.length === 0) {
-              list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">No clients found.</div>`;
-              return;
-          }
-
           const messagesResp = await getMessages('admin', false);
           if (!messagesResp.success) {
             list.innerHTML = `<div style="padding: 1rem; color: #dc2626; font-size: 0.9rem;">Could not load messages: ${messagesResp.error}</div>`;
@@ -369,16 +379,51 @@
               if (m.recipientId === 'admin' && m.senderId) threadClientIds.add(m.senderId);
           });
 
-          const filteredClients = eligibleClients.filter(client => {
+          const latestInboundBySender = new Map();
+          allMsgs.forEach((message) => {
+              if (message.recipientId !== 'admin' || !message.senderId || message.senderId === 'admin') return;
+              const existing = latestInboundBySender.get(message.senderId);
+              if (!existing || getMessageTimeValue(message) > getMessageTimeValue(existing)) {
+                  latestInboundBySender.set(message.senderId, message);
+              }
+          });
+
+          const knownClientIds = new Set(eligibleClients.map((client) => client.id));
+          const guestContacts = Array.from(threadClientIds)
+              .filter((participantId) => participantId !== 'admin' && !knownClientIds.has(participantId))
+              .map((guestId) => {
+                  const latestMessage = latestInboundBySender.get(guestId);
+                  const fallbackEmail = extractGuestEmail(guestId);
+                  return {
+                      id: guestId,
+                      clientName: latestMessage?.guestName || '',
+                      email: latestMessage?.guestEmail || fallbackEmail,
+                      role: 'guest',
+                      isGuest: true,
+                  };
+              });
+
+          const allContacts = [...eligibleClients, ...guestContacts];
+          availableChatClients = allContacts;
+          if (document.activeElement === searchInput) {
+              renderClientAutocomplete(searchInput.value, true);
+          }
+
+          if (allContacts.length === 0) {
+              list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">No conversations found.</div>`;
+              return;
+          }
+
+          const filteredClients = allContacts.filter(client => {
               const isThread = threadClientIds.has(client.id);
               if (!searchTerm) return isThread;
 
-              const fullText = `${client.clientName || ''} ${client.fullName || ''} ${client.email || ''}`.toLowerCase();
+              const fullText = `${getClientDisplayName(client)} ${client.clientName || ''} ${client.fullName || ''} ${client.email || ''}`.toLowerCase();
               return fullText.includes(searchTerm);
           });
 
           if (filteredClients.length === 0) {
-              list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">${searchTerm ? 'No clients match this search.' : 'No clients with message history. Use search to start a thread.'}</div>`;
+              list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">${searchTerm ? 'No conversations match this search.' : 'No conversations yet. Use search to start a client thread.'}</div>`;
               return;
           }
 
@@ -397,7 +442,7 @@
               div.style.alignItems = 'center';
 
               const leftBox = document.createElement('span');
-              leftBox.textContent = client.clientName || client.fullName || client.email;
+                            leftBox.textContent = getClientDisplayName(client);
               if (!hasThread) {
                 const label = document.createElement('span');
                 label.textContent = ' (start chat)';
