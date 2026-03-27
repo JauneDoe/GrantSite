@@ -504,7 +504,7 @@
 
         await sendMessage(currentUid, 'admin', text);
         input.value = '';
-        await renderClientChat();
+        // Real-time listener will update chat automatically
       }
 
       async function clientLogout(event) {

@@ -200,13 +200,14 @@ async function getConversation(userId, otherId) {
 }
 
 /**
- * Real-time listener for conversation between two users
+ * Real-time listener for conversation between two users with debounce
  * @param {string} userId
  * @param {string} otherId
  * @param {Function} callback - Called with { success, messages } on each update
+ * @param {number} debounceMs - Debounce delay in milliseconds (default 300)
  * @returns {Function} Unsubscribe function
  */
-function onConversationSnapshot(userId, otherId, callback) {
+function onConversationSnapshot(userId, otherId, callback, debounceMs = 300) {
   const queries = [
     firebase.firestore().collection("messages")
       .where("senderId", "==", userId)
@@ -218,11 +219,17 @@ function onConversationSnapshot(userId, otherId, callback) {
 
   const unsubscribers = [];
   const messageMap = new Map();
+  let debounceTimer = null;
 
   const sendUpdate = () => {
     const messages = Array.from(messageMap.values());
     messages.sort((a,b) => (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)) - (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)));
     callback({ success: true, messages });
+  };
+
+  const debouncedUpdate = () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(sendUpdate, debounceMs);
   };
 
   queries.forEach((query, index) => {
@@ -235,7 +242,7 @@ function onConversationSnapshot(userId, otherId, callback) {
           messageMap.delete(msgId);
         }
       });
-      sendUpdate();
+      debouncedUpdate();
     }, (error) => {
       console.error("Conversation snapshot error:", error.message);
       callback({ success: false, error: error.message });
@@ -243,7 +250,10 @@ function onConversationSnapshot(userId, otherId, callback) {
     unsubscribers.push(unsub);
   });
 
-  return () => unsubscribers.forEach(unsub => unsub());
+  return () => {
+    clearTimeout(debounceTimer);
+    unsubscribers.forEach(unsub => unsub());
+  };
 }
 
 // Ensure function is globally available if 3rd-party environment scope is limited

@@ -241,6 +241,7 @@
               const unreadCount = allMsgs.filter(m => m.senderId === client.id && m.recipientId === 'admin' && !m.read).length;
 
               const div = document.createElement('div');
+              div.setAttribute('data-client-id', client.id); // Track client ID for badge updates
               div.style.padding = '0.75rem 1rem';
               div.style.cursor = 'pointer';
               div.style.borderBottom = '1px solid var(--border)';
@@ -388,9 +389,10 @@
           }
       });
       
-      // Polling for updates (lower frequency to avoid blinking)
+      // Update badges without refreshing entire list (to avoid blinking)
       setInterval(async () => {
          await updateAdminGlobalBadge();
+         await updateClientBadges(); // Update unread badges only
          
          if(!activeChatClientId) return;
          if(localStorage.getItem('typing_' + activeChatClientId + '_client') === 'true') {
@@ -398,11 +400,35 @@
          } else {
              document.getElementById('admin-typing-indicator').classList.remove('active');
          }
+      }, 10000); // Every 10 seconds for unread count
 
-         // Only refresh full chat when a new message could be available,
-         // not every second to avoid flicker.
-         await loadMessageClients();
-      }, 5000);
+      async function updateClientBadges() {
+          const list = document.getElementById('msg-client-list');
+          if (!list) return;
+          
+          const messagesResp = await getMessages('admin', false);
+          if (!messagesResp.success) return;
+          const allMsgs = messagesResp.messages;
+          
+          // Update badges for each client item without re-rendering the list
+          const clientItems = list.querySelectorAll('[data-client-id]');
+          clientItems.forEach(item => {
+              const clientId = item.getAttribute('data-client-id');
+              const unreadCount = allMsgs.filter(m => m.senderId === clientId && m.recipientId === 'admin' && !m.read).length;
+              
+              let badge = item.querySelector('.badge');
+              if (unreadCount > 0) {
+                  if (!badge) {
+                      badge = document.createElement('span');
+                      badge.className = 'badge';
+                      item.appendChild(badge);
+                  }
+                  badge.textContent = unreadCount;
+              } else if (badge) {
+                  badge.remove();
+              }
+          });
+      }
 
       async function updateAdminGlobalBadge() {
           const response = await getMessages('admin', true);
@@ -423,8 +449,7 @@
           await sendMessage('admin', activeChatClientId, text);
           input.value = '';
           localStorage.setItem('typing_' + activeChatClientId + '_admin', 'false'); // Clear typing flag
-          await renderChatMessages();
-          await loadMessageClients();
+          // Real-time listener will update chat automatically
       }
 
       async function handleAdminFileUpload(input) {
@@ -433,8 +458,7 @@
                 const msg = `Shared a file: <br><a href="#" style="text-decoration: underline;">📄 ${file.name}</a>`;
                 await sendMessage('admin', activeChatClientId, msg);
                 input.value = '';
-                await renderChatMessages();
-                await loadMessageClients();
+                // Real-time listener will update chat automatically
           }
       }
 

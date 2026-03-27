@@ -20,12 +20,7 @@ async function signUpClient(email, password, clientData) {
       email: email,
       createdAt: new Date(),
       status: "active",
-            const result = await signInUser(email, password);
-      if (result.role === 'owner') {
-        window.location.href = "owner.html";
-      } else {
-        window.location.href = "client-dashboard.html";
-      }role: "client",
+      role: "client",
       ...clientData
     });
 
