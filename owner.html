@@ -104,12 +104,12 @@
                     <!-- List -->
                     <div style="border-right: 1px solid var(--border); overflow-y: auto; background: #fafafa;">
                         <h4 style="padding: 1rem; border-bottom: 1px solid var(--border); margin: 0; position: sticky; top: 0; background: #fafafa;">Clients</h4>
-                        <div style="padding: 0.75rem; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 40px; z-index: 1;">
-                            <input id="client-search-input" type="text" placeholder="Search name or email" style="width:100%; padding:0.5rem; border:1px solid var(--border); border-radius:6px;" />
-                            <select id="client-select" style="margin-top:0.5rem; width:100%; padding:0.45rem; border:1px solid var(--border); border-radius:6px;">
-                                <option value="">Select or search client</option>
-                            </select>
-                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;">Showing clients with active threads; use search or select to start one.</div>
+                        <div id="client-search-wrap" style="padding: 0.75rem; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 40px; z-index: 1;">
+                            <div style="position: relative;">
+                                <input id="client-search-input" type="text" autocomplete="off" placeholder="Search name or email" style="width:100%; padding:0.5rem; border:1px solid var(--border); border-radius:6px;" />
+                                <div id="client-autocomplete-list" style="position:absolute; left:0; right:0; top:100%; margin-top:0.25rem; background:#fff; border:1px solid var(--border); border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,0.08); max-height:220px; overflow-y:auto; z-index:50; display:none;"></div>
+                            </div>
+                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;">Click the search box to view all client accounts, then type to filter.</div>
                         </div>
                         <div id="msg-client-list">
                             <!-- Populated by JS -->
@@ -240,6 +240,65 @@
       let chatUnsubscribe = null;
       let currentOwnerProfile = null;
       let currentOwnerUser = null;
+      let availableChatClients = [];
+
+      function getClientDisplayName(client) {
+          return client.clientName || client.fullName || client.email || 'Unknown Client';
+      }
+
+      function renderClientAutocomplete(searchTerm = '', forceShow = false) {
+          const dropdown = document.getElementById('client-autocomplete-list');
+          if (!dropdown) return;
+
+          const term = (searchTerm || '').trim().toLowerCase();
+          const matches = availableChatClients.filter((client) => {
+              const fullText = `${getClientDisplayName(client)} ${client.email || ''}`.toLowerCase();
+              return fullText.includes(term);
+          });
+
+          if (!forceShow && !term) {
+              dropdown.style.display = 'none';
+              return;
+          }
+
+          if (matches.length === 0) {
+              dropdown.innerHTML = `<div style="padding: 0.6rem 0.75rem; color: var(--muted); font-size: 0.85rem;">No matching clients.</div>`;
+              dropdown.style.display = 'block';
+              return;
+          }
+
+          dropdown.innerHTML = '';
+          matches.forEach((client) => {
+              const option = document.createElement('button');
+              option.type = 'button';
+              option.style.width = '100%';
+              option.style.textAlign = 'left';
+              option.style.padding = '0.6rem 0.75rem';
+              option.style.border = '0';
+              option.style.borderBottom = '1px solid var(--border)';
+              option.style.background = '#fff';
+              option.style.cursor = 'pointer';
+              option.style.fontSize = '0.85rem';
+              option.innerHTML = `<strong>${getClientDisplayName(client)}</strong><br><span style="color: var(--muted);">${client.email || 'no-email'}</span>`;
+              option.onmouseover = () => { option.style.background = '#f8fafc'; };
+              option.onmouseout = () => { option.style.background = '#fff'; };
+              option.onmousedown = (event) => {
+                  event.preventDefault();
+                  const searchInput = document.getElementById('client-search-input');
+                  searchInput.value = getClientDisplayName(client);
+                  dropdown.style.display = 'none';
+                  openAdminChat(client.id, getClientDisplayName(client));
+              };
+              dropdown.appendChild(option);
+          });
+
+          const last = dropdown.lastElementChild;
+          if (last) {
+              last.style.borderBottom = '0';
+          }
+
+          dropdown.style.display = 'block';
+      }
 
       async function loadMessageClients() {
           const list = document.getElementById('msg-client-list');
@@ -247,8 +306,34 @@
 
           const searchInput = document.getElementById('client-search-input');
           if (searchInput && !searchInput.dataset.bound) {
-              searchInput.addEventListener('input', () => loadMessageClients());
+              searchInput.addEventListener('input', () => {
+                  renderClientAutocomplete(searchInput.value, true);
+                  loadMessageClients();
+              });
+              searchInput.addEventListener('focus', () => {
+                  renderClientAutocomplete(searchInput.value, true);
+              });
+              searchInput.addEventListener('keydown', (event) => {
+                  if (event.key === 'Escape') {
+                      const dropdown = document.getElementById('client-autocomplete-list');
+                      if (dropdown) {
+                          dropdown.style.display = 'none';
+                      }
+                  }
+              });
               searchInput.dataset.bound = '1';
+          }
+          const searchWrap = document.getElementById('client-search-wrap');
+          if (searchWrap && !searchWrap.dataset.bound) {
+              document.addEventListener('click', (event) => {
+                  if (!searchWrap.contains(event.target)) {
+                      const dropdown = document.getElementById('client-autocomplete-list');
+                      if (dropdown) {
+                          dropdown.style.display = 'none';
+                      }
+                  }
+              });
+              searchWrap.dataset.bound = '1';
           }
           const searchTerm = searchInput?.value?.trim().toLowerCase() || '';
 
@@ -259,7 +344,18 @@
               clients.push({ id: doc.id, ...doc.data() });
           });
 
-          if (clients.length === 0) {
+          const eligibleClients = clients.filter((client) => {
+              const isSelf = currentOwnerUser && client.id === currentOwnerUser.uid;
+              const role = String(client.role || 'client').toLowerCase();
+              return !isSelf && role !== 'owner';
+          });
+
+          availableChatClients = eligibleClients;
+          if (document.activeElement === searchInput) {
+              renderClientAutocomplete(searchInput.value, true);
+          }
+
+          if (eligibleClients.length === 0) {
               list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">No clients found.</div>`;
               return;
           }
@@ -277,29 +373,7 @@
               if (m.recipientId === 'admin' && m.senderId) threadClientIds.add(m.senderId);
           });
 
-          const clientSelect = document.getElementById('client-select');
-          if (clientSelect) {
-            clientSelect.innerHTML = '<option value="">Select or search client</option>';
-            clients.forEach(client => {
-                const name = client.clientName || client.fullName || client.email || 'Unknown';
-                const opt = document.createElement('option');
-                opt.value = client.id;
-                opt.textContent = `${name} (${client.email || 'no-email'})`;
-                clientSelect.appendChild(opt);
-            });
-
-            clientSelect.onchange = () => {
-              const selectedId = clientSelect.value;
-              if (!selectedId) return;
-              const selected = clients.find(c => c.id === selectedId);
-              if (selected) {
-                document.getElementById('client-search-input').value = selected.clientName || selected.fullName || selected.email || '';
-                openAdminChat(selected.id, selected.clientName || selected.fullName || selected.email || 'Client');
-              }
-            };
-          }
-
-          const filteredClients = clients.filter(client => {
+          const filteredClients = eligibleClients.filter(client => {
               const isThread = threadClientIds.has(client.id);
               if (!searchTerm) return isThread;
 
@@ -352,7 +426,7 @@
               div.appendChild(leftBox);
               div.appendChild(rightBox);
 
-              div.onclick = () => openAdminChat(client.id, client.clientName || client.fullName || client.email);
+              div.onclick = () => openAdminChat(client.id, getClientDisplayName(client));
 
               if (activeChatClientId === client.id) {
                   div.style.background = '#eef2ff';
@@ -724,7 +798,16 @@
           const userDoc = await firebase.firestore().collection('clients').doc(user.uid).get();
           const profile = userDoc.exists ? userDoc.data() : null;
           currentOwnerProfile = profile;
-          const role = profile?.role || "client";
+                    const isOwnerEmail = (user.email || '').toLowerCase() === 'owner@2xclusive.com';
+                    const role = profile?.role || (isOwnerEmail ? 'owner' : 'client');
+
+                    if (isOwnerEmail && profile?.role !== 'owner') {
+                        await firebase.firestore().collection('clients').doc(user.uid).set({ role: 'owner' }, { merge: true });
+                        if (!currentOwnerProfile) {
+                            currentOwnerProfile = {};
+                        }
+                        currentOwnerProfile.role = 'owner';
+                    }
 
           if (role !== "owner") {
             console.error("User is not an owner, redirecting to client dashboard");
