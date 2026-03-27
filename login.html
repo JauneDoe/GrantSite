@@ -44,6 +44,11 @@
           <label for="password">Password</label>
           <input id="password" name="password" type="password" autocomplete="current-password" required />
         </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: -0.5rem; margin-bottom: 1rem;">
+          <button id="forgot-password-btn" type="button" style="background: none; border: 0; padding: 0; color: var(--primary); font: inherit; font-size: 0.9rem; cursor: pointer; text-decoration: underline;">
+            Forgot password?
+          </button>
+        </div>
         <button class="button button-primary" type="submit">Sign in</button>
         <p id="login-error" class="login-error" role="alert" aria-live="polite"></p>
         
@@ -60,11 +65,15 @@
 
       const form = document.getElementById("login-form");
       const error = document.getElementById("login-error");
+      const forgotPasswordBtn = document.getElementById("forgot-password-btn");
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const email = form.email.value.trim();
         const password = form.password.value.trim();
+
+        error.style.color = "#dc2626";
+        error.textContent = "";
 
         const result = await signInUser(email, password);
         if (!result.success) {
@@ -79,6 +88,30 @@
         } else {
           window.location.href = "client-dashboard.html";
         }
+      });
+
+      forgotPasswordBtn.addEventListener("click", async () => {
+        const email = form.email.value.trim();
+
+        if (!email) {
+          error.style.color = "#dc2626";
+          error.textContent = "Enter your email address first, then select Forgot password.";
+          form.email.focus();
+          return;
+        }
+
+        error.style.color = "#334155";
+        error.textContent = "Sending password reset email...";
+
+        const result = await resetPassword(email);
+        if (!result.success) {
+          error.style.color = "#dc2626";
+          error.textContent = "Password reset failed: " + result.error;
+          return;
+        }
+
+        error.style.color = "#16a34a";
+        error.textContent = "Password reset email sent. Check your inbox and spam folder.";
       });
     </script>
   </body>
