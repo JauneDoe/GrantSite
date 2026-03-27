@@ -318,6 +318,7 @@
 
       async function loadMessageClients() {
           const list = document.getElementById('msg-client-list');
+          if (!list) return;
           list.innerHTML = '';
 
           const searchInput = document.getElementById('client-search-input');
@@ -353,19 +354,6 @@
           }
           const searchTerm = searchInput?.value?.trim().toLowerCase() || '';
 
-          // Get registered clients from Firestore
-          const clientsSnapshot = await firebase.firestore().collection('clients').get();
-          const clients = [];
-          clientsSnapshot.forEach((doc) => {
-              clients.push({ id: doc.id, ...doc.data() });
-          });
-
-          const eligibleClients = clients.filter((client) => {
-              const isSelf = currentOwnerUser && client.id === currentOwnerUser.uid;
-              const role = String(client.role || 'client').toLowerCase();
-              return !isSelf && role !== 'owner';
-          });
-
           const messagesResp = await getMessages('admin', false);
           if (!messagesResp.success) {
             list.innerHTML = `<div style="padding: 1rem; color: #dc2626; font-size: 0.9rem;">Could not load messages: ${messagesResp.error}</div>`;
@@ -378,6 +366,24 @@
               if (m.senderId === 'admin' && m.recipientId) threadClientIds.add(m.recipientId);
               if (m.recipientId === 'admin' && m.senderId) threadClientIds.add(m.senderId);
           });
+
+          // Try to load known client profiles. If this fails due rules, still show threads.
+          let eligibleClients = [];
+          try {
+              const clientsSnapshot = await firebase.firestore().collection('clients').get();
+              const clients = [];
+              clientsSnapshot.forEach((doc) => {
+                  clients.push({ id: doc.id, ...doc.data() });
+              });
+
+              eligibleClients = clients.filter((client) => {
+                  const isSelf = currentOwnerUser && client.id === currentOwnerUser.uid;
+                  const role = String(client.role || 'client').toLowerCase();
+                  return !isSelf && role !== 'owner';
+              });
+          } catch (error) {
+              eligibleClients = [];
+          }
 
           const latestInboundBySender = new Map();
           allMsgs.forEach((message) => {
@@ -638,7 +644,12 @@
       // Update badges without refreshing entire list (to avoid blinking)
       setInterval(async () => {
          await updateAdminGlobalBadge();
-         await updateClientBadges(); // Update unread badges only
+         const isMessagesViewActive = document.getElementById('view-messages')?.classList.contains('active');
+         if (isMessagesViewActive) {
+             await loadMessageClients();
+         } else {
+             await updateClientBadges(); // Update unread badges only
+         }
          
          if(!activeChatClientId) return;
          if(localStorage.getItem('typing_' + activeChatClientId + '_client') === 'true') {
@@ -695,6 +706,8 @@
           await sendMessage('admin', activeChatClientId, text);
           input.value = '';
           localStorage.setItem('typing_' + activeChatClientId + '_admin', 'false'); // Clear typing flag
+          await loadMessageClients();
+          await updateAdminGlobalBadge();
           // Real-time listener will update chat automatically
       }
 
