@@ -315,15 +315,24 @@
               return;
           }
 
+          // Unsubscribe from current conversation to avoid stale updates
+          if (chatUnsubscribe) {
+              chatUnsubscribe();
+              chatUnsubscribe = null;
+          }
+
           // Clear UI and reload clients list
           document.getElementById('chat-window').innerHTML = '<p style="color:var(--muted); text-align:center; margin-top:2rem;">Conversation deleted. Select another client.</p>';
           document.getElementById('chat-header').textContent = 'Select a client to chat';
           document.getElementById('delete-chat-thread').style.display = 'none';
+          document.getElementById('admin-chat-input').disabled = true;
+          document.getElementById('admin-chat-send').disabled = true;
+          document.getElementById('admin-file-btn').disabled = true;
           activeChatClientId = null;
           activeChatClientName = null;
 
-          loadMessageClients();
-          updateAdminGlobalBadge();
+          await loadMessageClients();
+          await updateAdminGlobalBadge();
       }
 
       function renderChatMessagesFromData(msgs) {
