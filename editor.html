@@ -86,6 +86,50 @@
                  </div>
             </details>
 
+            <!-- HERO CARD / TRACKER -->
+            <details style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">Success Tracker & Stats</summary>
+                 <p class="form-help">
+                  Option 1: Enter values manually.<br>
+                  Option 2: Paste a "Published to Web" Google Sheet CSV link.
+                </p>
+                <div class="owner-grid">
+                   <div class="form-field full-width">
+                    <label>Card Title</label>
+                    <input data-edit-key="heroCardTitle" value="Client Success Tracker" />
+                   </div>
+                   <div class="form-field full-width">
+                    <label>Card Body</label>
+                    <textarea data-edit-key="heroCardBody">We are dedicated to maximizing funding opportunities. See the total value of grants secured for our clients this year.</textarea>
+                   </div>
+
+                   <!-- Progress Bar Data -->
+                   <div class="form-field">
+                    <label for="fundraisingCurrent">Current Verified ($)</label>
+                    <input type="number" id="fundraisingCurrent" data-edit-key="fundraisingCurrent" placeholder="e.g. 50000" />
+                   </div>
+                   <div class="form-field">
+                    <label for="fundraisingGoal">Target Amount ($)</label>
+                    <input type="number" id="fundraisingGoal" data-edit-key="fundraisingGoal" placeholder="e.g. 100000" />
+                   </div>
+                   <div class="form-field full-width">
+                    <label for="fundraisingSheetUrl">Google Sheet CSV Link</label>
+                    <input id="fundraisingSheetUrl" data-edit-key="fundraisingSheetUrl" placeholder="https://docs.google.com/.../pub?output=csv" />
+                   </div>
+                   <div class="form-field"><label>Progress Title</label><input data-edit-key="progressTitle" value="Funds Secured (2026)" /></div>
+
+                   <!-- Stats -->
+                   <div class="form-field"><label>Stat 1 Number</label><input data-edit-key="statOneNumber" value="50+" /></div>
+                   <div class="form-field"><label>Stat 1 Label</label><input data-edit-key="statOneLabel" value="Clients Funded" /></div>
+                   <div class="form-field"><label>Stat 2 Number</label><input data-edit-key="statTwoNumber" value="$1M+" /></div>
+                   <div class="form-field"><label>Stat 2 Label</label><input data-edit-key="statTwoLabel" value="In Active Inquiries" /></div>
+                   
+                   <!-- Card Actions -->
+                   <div class="form-field"><label>Card Primary Btn</label><input data-edit-key="heroCardPrimaryText" value="Start Your Request" /></div>
+                   <div class="form-field"><label>Card Secondary Btn</label><input data-edit-key="heroCardSecondaryText" value="See Community Impact" /></div>
+                </div>
+            </details>
+
             <!-- ABOUT US -->
             <details style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
                 <summary style="font-weight: 700; cursor: pointer; margin-bottom: 1rem;">About Section</summary>

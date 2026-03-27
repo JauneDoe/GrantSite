@@ -79,7 +79,59 @@
             </a>
           </div>
         </div>
+        <div class="hero-card">
+          <h2 data-edit-key="heroCardTitle">Client Success Tracker</h2>
+          <p data-edit-key="heroCardBody">
+            We are dedicated to maximizing funding opportunities. See the total value of grants secured for our clients this year.
+          </p>
 
+          <div class="progress-container">
+            <div class="progress-header">
+              <span class="progress-title" data-edit-key="progressTitle">Funds Secured (2026)</span>
+              <span class="progress-percentage" id="progress-percent">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="progress-stats">
+              <span id="progress-current" class="stat-current">$0 Secured</span>
+              <span id="progress-goal" class="stat-goal">Target: $0</span>
+            </div>
+          </div>
+
+          <div class="stats">
+            <div>
+              <span class="stat-number" data-edit-key="statOneNumber">50+</span>
+              <span class="stat-label" data-edit-key="statOneLabel">Clients Funded</span>
+            </div>
+            <div>
+              <span class="stat-number" data-edit-key="statTwoNumber">$1M+</span>
+              <span class="stat-label" data-edit-key="statTwoLabel">In Active Inquiries</span>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <a
+              class="button button-primary"
+              href="login.html"
+              data-edit-key="heroCardPrimaryText"
+              data-edit-attr="href"
+              data-edit-attr-key="heroCardPrimaryLink"
+              data-edit-text="true"
+            >
+              Start Your Request
+            </a>
+            <a
+              class="button button-ghost"
+              href="#impact"
+              data-edit-key="heroCardSecondaryText"
+              data-edit-attr="href"
+              data-edit-attr-key="heroCardSecondaryLink"
+              data-edit-text="true"
+            >
+              See Community Impact
+            </a>
+          </div>
+        </div>
       </section>
 
       <section id="about" class="section">
@@ -452,6 +504,60 @@
           }
         });
       });
+
+      // Fundraising Progress Update
+      const updateProgressUI = (current, goal) => {
+          const fCurrent = parseFloat(current || "0");
+          const fGoal = parseFloat(goal || "0");
+
+          if (fGoal > 0 || fCurrent > 0) {
+            const dollarUS = Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: "USD",
+              maximumFractionDigits: 0,
+            });
+
+            const pCurrentEl = document.getElementById("progress-current");
+            const pGoalEl = document.getElementById("progress-goal");
+            const pPercentEl = document.getElementById("progress-percent");
+            const pFillEl = document.getElementById("progress-fill");
+
+            if (pCurrentEl) pCurrentEl.textContent = `${dollarUS.format(fCurrent)} raised`;
+            if (pGoalEl) pGoalEl.textContent = `Goal: ${dollarUS.format(fGoal)}`;
+
+            if (fGoal > 0) {
+              const percent = Math.min(100, Math.max(0, (fCurrent / fGoal) * 100));
+              if (pPercentEl) pPercentEl.textContent = `${Math.round(percent)}%`;
+              if (pFillEl) setTimeout(() => { pFillEl.style.width = `${percent}%`; }, 100);
+            }
+          }
+      };
+
+      const sheetUrl = edits.fundraisingSheetUrl;
+      
+      if (sheetUrl && sheetUrl.length > 5) {
+          // Attempt to fetch from Google Sheet
+          fetch(sheetUrl)
+            .then(res => res.text())
+            .then(csv => {
+                // Parse simple CSV: expects Row 2 to have values 50000,100000 etc.
+                const lines = csv.split('\n');
+                if (lines.length >= 2) {
+                    const values = lines[1].split(','); // Get second row (Index 1)
+                    if (values.length >= 2) {
+                        const current = values[0].trim();
+                        const goal = values[1].trim();
+                        updateProgressUI(current, goal);
+                    }
+                }
+            })
+            .catch(err => {
+                console.warn("Could not fetch fundraising data, falling back to manual edits.", err);
+                updateProgressUI(edits.fundraisingCurrent, edits.fundraisingGoal);
+            });
+      } else {
+          updateProgressUI(edits.fundraisingCurrent, edits.fundraisingGoal);
+      }
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
