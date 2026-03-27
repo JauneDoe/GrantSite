@@ -106,7 +106,10 @@
                         <h4 style="padding: 1rem; border-bottom: 1px solid var(--border); margin: 0; position: sticky; top: 0; background: #fafafa;">Clients</h4>
                         <div style="padding: 0.75rem; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 40px; z-index: 1;">
                             <input id="client-search-input" type="text" placeholder="Search name or email" style="width:100%; padding:0.5rem; border:1px solid var(--border); border-radius:6px;" />
-                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;">Showing clients with active threads; search to start one.</div>
+                            <select id="client-select" style="margin-top:0.5rem; width:100%; padding:0.45rem; border:1px solid var(--border); border-radius:6px;">
+                                <option value="">Select or search client</option>
+                            </select>
+                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;">Showing clients with active threads; use search or select to start one.</div>
                         </div>
                         <div id="msg-client-list">
                             <!-- Populated by JS -->
@@ -253,6 +256,28 @@
               if (m.senderId === 'admin' && m.recipientId) threadClientIds.add(m.recipientId);
               if (m.recipientId === 'admin' && m.senderId) threadClientIds.add(m.senderId);
           });
+
+          const clientSelect = document.getElementById('client-select');
+          if (clientSelect) {
+            clientSelect.innerHTML = '<option value="">Select or search client</option>';
+            clients.forEach(client => {
+                const name = client.clientName || client.fullName || client.email || 'Unknown';
+                const opt = document.createElement('option');
+                opt.value = client.id;
+                opt.textContent = `${name} (${client.email || 'no-email'})`;
+                clientSelect.appendChild(opt);
+            });
+
+            clientSelect.onchange = () => {
+              const selectedId = clientSelect.value;
+              if (!selectedId) return;
+              const selected = clients.find(c => c.id === selectedId);
+              if (selected) {
+                document.getElementById('client-search-input').value = selected.clientName || selected.fullName || selected.email || '';
+                openAdminChat(selected.id, selected.clientName || selected.fullName || selected.email || 'Client');
+              }
+            };
+          }
 
           const filteredClients = clients.filter(client => {
               const isThread = threadClientIds.has(client.id);
