@@ -441,6 +441,14 @@
           return;
         }
 
+        // If the last message is older than 24 hours, hide historical messages and treat as reset
+        const lastMessage = messages[messages.length - 1];
+        const lastTs = lastMessage?.timestamp?.toDate?.() ?? new Date(lastMessage?.timestamp);
+        if (Date.now() - new Date(lastTs).getTime() >= 24 * 60 * 60 * 1000) {
+          windowEl.innerHTML = '<p style="color:var(--muted); text-align: center; margin-top: 2rem;">Message board reset after 24 hours. Start a new thread.</p>';
+          return;
+        }
+
         messages.forEach((m) => {
           const isMe = m.senderId === currentUid;
           const div = document.createElement('div');

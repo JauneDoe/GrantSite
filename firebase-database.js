@@ -200,6 +200,42 @@ async function getConversation(userId, otherId) {
 }
 
 /**
+ * Delete conversation from "messages" and archive into "message-history"
+ * @param {string} userId
+ * @param {string} otherId
+ * @param {string} deletedBy
+ */
+async function deleteConversation(userId, otherId, deletedBy = 'admin') {
+  try {
+    const [sentSnap, receivedSnap] = await Promise.all([
+      firebase.firestore().collection("messages").where("senderId", "==", userId).where("recipientId", "==", otherId).get(),
+      firebase.firestore().collection("messages").where("senderId", "==", otherId).where("recipientId", "==", userId).get(),
+    ]);
+
+    const allDocs = [...sentSnap.docs, ...receivedSnap.docs];
+
+    const batch = firebase.firestore().batch();
+    allDocs.forEach((doc) => {
+      const data = doc.data();
+      const historyRef = firebase.firestore().collection("message-history").doc();
+      batch.set(historyRef, {
+        originalMessageId: doc.id,
+        ...data,
+        archivedAt: new Date(),
+        deletedBy: deletedBy,
+      });
+      batch.delete(firebase.firestore().collection("messages").doc(doc.id));
+    });
+
+    await batch.commit();
+    return { success: true, deletedCount: allDocs.length };
+  } catch (error) {
+    console.error("Delete conversation error:", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Real-time listener for conversation between two users with debounce
  * @param {string} userId
  * @param {string} otherId
@@ -262,6 +298,7 @@ window.getMessages = getMessages;
 window.sendMessage = sendMessage;
 window.markMessageAsRead = markMessageAsRead;
 window.onConversationSnapshot = onConversationSnapshot;
+window.deleteConversation = deleteConversation;
 
 /**
  * Mark a message as read

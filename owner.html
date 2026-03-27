@@ -110,8 +110,9 @@
                     </div>
                     <!-- Chat Area -->
                     <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
-                         <div id="chat-header" style="padding: 1rem; border-bottom: 1px solid var(--border); font-weight: 600; background: #fff;">
-                             Select a client to chat
+                         <div style="padding: 1rem; border-bottom: 1px solid var(--border); background: #fff; display: flex; justify-content: space-between; align-items: center;">
+                             <span id="chat-header" style="font-weight: 600;">Select a client to chat</span>
+                             <button id="delete-chat-thread" class="button button-danger" style="padding: 0.45rem 0.75rem; font-size: 0.85rem; display: none;" onclick="deleteCurrentThread()">Delete thread</button>
                          </div>
                          <div id="chat-window" style="flex: 1; padding: 1.5rem 1.5rem 0.5rem; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; gap: 1rem;">
                              <!-- Messages -->
@@ -286,6 +287,12 @@
           await markConversationRead(clientId);
           loadMessageClients(); // Re-render list to clear badge
 
+          // Show the owner delete-button when a client is selected
+          const deleteBtn = document.getElementById('delete-chat-thread');
+          if (deleteBtn) {
+              deleteBtn.style.display = 'inline-flex';
+          }
+
           // Set up real-time listener for this conversation
           if (typeof onConversationSnapshot === 'function') {
               chatUnsubscribe = onConversationSnapshot('admin', clientId, (response) => {
@@ -296,6 +303,27 @@
           } else {
               await renderChatMessages();
           }
+      }
+
+      async function deleteCurrentThread() {
+          if (!activeChatClientId) return;
+          if (!confirm('Delete entire message thread with ' + activeChatClientName + '? This action is permanent.')) return;
+
+          const result = await deleteConversation('admin', activeChatClientId, 'admin');
+          if (!result.success) {
+              alert('Could not delete conversation: ' + result.error);
+              return;
+          }
+
+          // Clear UI and reload clients list
+          document.getElementById('chat-window').innerHTML = '<p style="color:var(--muted); text-align:center; margin-top:2rem;">Conversation deleted. Select another client.</p>';
+          document.getElementById('chat-header').textContent = 'Select a client to chat';
+          document.getElementById('delete-chat-thread').style.display = 'none';
+          activeChatClientId = null;
+          activeChatClientName = null;
+
+          loadMessageClients();
+          updateAdminGlobalBadge();
       }
 
       function renderChatMessagesFromData(msgs) {
