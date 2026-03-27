@@ -129,6 +129,9 @@
                              <input id="admin-chat-input" type="text" class="chat-input" disabled placeholder="Select a client first..." onkeydown="if(event.key === 'Enter') sendAdminMessage()">
                              <button id="admin-chat-send" class="button button-primary" disabled onclick="sendAdminMessage()">Send</button>
                          </div>
+                         <div id="visitor-reply-note" style="display: none; padding: 0.75rem 1rem; border-top: 1px solid var(--border); background: #fff7ed; color: #9a3412; font-size: 0.85rem;">
+                             Visitor notice: this sender is not signed in or does not have an account. Do not reply in this message board. Reply to the visitor email shown in the thread name.
+                         </div>
                     </div>
                 </div>
             </div>
@@ -497,8 +500,17 @@
           activeChatClientId = clientId;
           activeChatClientName = clientName;
           document.getElementById('chat-header').textContent = "Chat with " + clientName;
-          document.getElementById('admin-chat-input').disabled = false;
-          document.getElementById('admin-chat-send').disabled = false;
+          const isGuestThread = isGuestSenderId(clientId);
+          const input = document.getElementById('admin-chat-input');
+          const sendBtn = document.getElementById('admin-chat-send');
+          const visitorNote = document.getElementById('visitor-reply-note');
+
+          input.disabled = isGuestThread;
+          sendBtn.disabled = isGuestThread;
+          input.placeholder = isGuestThread ? 'Visitor thread is read-only. Reply via email instead.' : 'Type your message...';
+          if (visitorNote) {
+              visitorNote.style.display = isGuestThread ? 'block' : 'none';
+          }
 
           await markConversationRead(clientId);
           loadMessageClients(); // Re-render list to clear badge
@@ -542,7 +554,9 @@
           document.getElementById('chat-header').textContent = 'Select a client to chat';
           document.getElementById('delete-chat-thread').style.display = 'none';
           document.getElementById('admin-chat-input').disabled = true;
+          document.getElementById('admin-chat-input').placeholder = 'Select a client first...';
           document.getElementById('admin-chat-send').disabled = true;
+          document.getElementById('visitor-reply-note').style.display = 'none';
           activeChatClientId = null;
           activeChatClientName = null;
 
@@ -699,6 +713,10 @@
 
       async function sendAdminMessage() {
           if(!activeChatClientId) return;
+          if (isGuestSenderId(activeChatClientId)) {
+              alert('This is a visitor thread. Please reply to the email in the visitor label.');
+              return;
+          }
           const input = document.getElementById('admin-chat-input');
           const text = input.value.trim();
           if(!text) return;
