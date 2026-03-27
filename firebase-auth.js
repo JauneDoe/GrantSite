@@ -66,10 +66,16 @@ async function signInUser(email, password) {
       profile = {
         email: user.email,
         clientName: user.email,
-        role: "client",
+        role: user.email === "owner@2xclusive.com" ? "owner" : "client",
         createdAt: new Date(),
       };
       await userDocRef.set(profile, { merge: true });
+    }
+
+    // Auto-upgrade legacy owner missing the role
+    if (user.email === "owner@2xclusive.com" && profile.role !== "owner") {
+        profile.role = "owner";
+        await userDocRef.set({ role: "owner" }, { merge: true });
     }
 
     const role = profile.role || "client";

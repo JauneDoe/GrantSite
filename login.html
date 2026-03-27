@@ -61,18 +61,10 @@
       const form = document.getElementById("login-form");
       const error = document.getElementById("login-error");
 
-      const OWNER_ADMIN_EMAIL = "owner@2xclusive.com";
-      const OWNER_ADMIN_PASSWORD = "Easyas123"; // keep or remove for secure env
-
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const email = form.email.value.trim();
         const password = form.password.value.trim();
-
-        if (email === OWNER_ADMIN_EMAIL && password === OWNER_ADMIN_PASSWORD) {
-          window.location.href = "owner.html";
-          return;
-        }
 
         const result = await signInUser(email, password);
         if (!result.success) {
