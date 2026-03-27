@@ -291,6 +291,13 @@
 
           const profileDoc = await firebase.firestore().collection('clients').doc(currentUid).get();
           currentProfile = profileDoc.exists ? profileDoc.data() : { clientName: user.email, fullName: '', email: user.email };
+          const role = currentProfile.role || 'client';
+
+          if (role !== 'client') {
+            window.location.href = role === 'owner' ? 'owner.html' : 'login.html';
+            return;
+          }
+
           document.getElementById('user-name').textContent = currentProfile.clientName || user.email;
 
           await loadRequests(currentUid);

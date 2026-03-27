@@ -87,12 +87,26 @@ async function signInUser(email, password) {
     return { success: false, error: error.message || String(error) };
   }
 }
+
+function clearAuthSessionState() {
+  const sessionKeys = [
+    "ownerAccess",
+    "clientAccess",
+    "clientName",
+    "clientEmail",
+    "clientBusiness",
+    "clientCreated"
+  ];
+
+  sessionKeys.forEach((key) => sessionStorage.removeItem(key));
+}
 /**
  * Sign out current user
  * @returns {Promise<Object>} Success status
  */
 async function signOutUser() {
   try {
+    clearAuthSessionState();
     await firebase.auth().signOut();
     return { success: true };
   } catch (error) {
@@ -155,3 +169,4 @@ window.checkAuth = checkAuth;
 window.resetPassword = resetPassword;
 window.updateUserProfile = updateUserProfile;
 window.deleteCurrentUser = deleteCurrentUser;
+window.clearAuthSessionState = clearAuthSessionState;

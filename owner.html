@@ -32,7 +32,7 @@
         </span>
         <div class="nav-actions">
           <a class="button button-ghost" href="index.html" target="_blank">View Live Site</a>
-          <button class="button button-ghost" onclick="ownerLogout()">Sign Out</button>
+          <button class="button button-ghost" type="button" onclick="ownerLogout(event)">Sign Out</button>
         </div>
       </nav>
     </header>
@@ -105,11 +105,11 @@
                     <div style="border-right: 1px solid var(--border); overflow-y: auto; background: #fafafa;">
                         <h4 style="padding: 1rem; border-bottom: 1px solid var(--border); margin: 0; position: sticky; top: 0; background: #fafafa;">Clients</h4>
                         <div style="padding: 0.75rem; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 40px; z-index: 1;">
-                            <div style="position:relative;">
-                                <input id="client-search-input" type="text" autocomplete="off" placeholder="Search or select client" style="width:100%; padding:0.5rem; border:1px solid var(--border); border-radius:6px;" />
-                                <div id="client-autocomplete-list" style="position:absolute; left:0; right:0; top:100%; background:#fff; border:1px solid var(--border); border-radius:0 0 6px 6px; box-shadow:0 2px 8px rgba(0,0,0,0.07); z-index:10; display:none;"></div>
-                            </div>
-                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;">Type to search and select a client. Only clients with threads are shown below by default.</div>
+                            <input id="client-search-input" type="text" placeholder="Search name or email" style="width:100%; padding:0.5rem; border:1px solid var(--border); border-radius:6px;" />
+                            <select id="client-select" style="margin-top:0.5rem; width:100%; padding:0.45rem; border:1px solid var(--border); border-radius:6px;">
+                                <option value="">Select or search client</option>
+                            </select>
+                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;">Showing clients with active threads; use search or select to start one.</div>
                         </div>
                         <div id="msg-client-list">
                             <!-- Populated by JS -->
@@ -709,14 +709,18 @@
           }
       }
 
-      function ownerLogout() {
-          sessionStorage.removeItem("ownerAccess");
-          sessionStorage.removeItem("clientAccess");
-          sessionStorage.removeItem("clientName");
-          sessionStorage.removeItem("clientEmail");
-          sessionStorage.removeItem("clientBusiness");
-          sessionStorage.removeItem("clientCreated");
-          window.location.href = "index.html";
+      async function ownerLogout(event) {
+          if (event) {
+              event.preventDefault();
+          }
+
+          const result = await signOutUser();
+          if (!result.success) {
+              alert("Sign out failed: " + result.error);
+              return;
+          }
+
+          window.location.href = "login.html";
       }
 
       // Initialize
