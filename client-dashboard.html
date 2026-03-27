@@ -154,26 +154,38 @@
                 <!-- Account Information -->
                 <div class="card" style="grid-column: 1 / -1; margin-bottom: 2rem;">
                     <h3>Account Information</h3>
-                    <div style="margin-top: 1.5rem;">
+                    <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.25rem;">Update your profile details below.</p>
+                    <form id="profile-form" style="margin-top: 1.5rem;">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
-                            <div>
-                                <label style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Full Name</label>
-                                <p id="settings-name" style="font-weight: 600; font-size: 1rem;">-</p>
+                            <div class="form-field">
+                                <label for="edit-name">Full Name</label>
+                                <input id="edit-name" type="text" placeholder="Your full name" />
                             </div>
-                            <div>
-                                <label style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Email Address</label>
-                                <p id="settings-email" style="font-weight: 600; font-size: 1rem;">-</p>
+                            <div class="form-field">
+                                <label for="edit-business">Business / Organization Name</label>
+                                <input id="edit-business" type="text" placeholder="Your business or organization" />
                             </div>
-                            <div>
-                                <label style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Business Name</label>
-                                <p id="settings-business" style="font-weight: 600; font-size: 1rem;">-</p>
+                            <div class="form-field">
+                                <label for="edit-phone">Phone Number</label>
+                                <input id="edit-phone" type="tel" placeholder="(555) 123-4567" />
+                            </div>
+                            <div class="form-field">
+                                <label for="edit-email">Email Address</label>
+                                <input id="edit-email" type="email" placeholder="your@email.com" />
+                                <small id="email-change-note" style="display: none; color: var(--muted); font-size: 0.8rem; margin-top: 0.25rem;">Changing your email requires your current password.</small>
+                            </div>
+                            <div class="form-field" id="email-password-field" style="display: none;">
+                                <label for="edit-email-password">Current Password <span style="color: #dc2626;">*</span></label>
+                                <input id="edit-email-password" type="password" placeholder="Required to change email" />
                             </div>
                             <div>
                                 <label style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Account Created</label>
-                                <p id="settings-created" style="font-weight: 600; font-size: 1rem;">-</p>
+                                <p id="settings-created" style="font-weight: 600; font-size: 1rem; margin: 0; padding-top: 0.4rem;">-</p>
                             </div>
                         </div>
-                    </div>
+                        <button type="submit" class="button button-primary" style="margin-top: 1.5rem;">Save Changes</button>
+                        <p id="profile-message" style="margin-top: 0.75rem; font-size: 0.9rem;"></p>
+                    </form>
                 </div>
 
                 <!-- Password Management -->
@@ -195,27 +207,6 @@
                         <button type="submit" class="button button-primary">Update Password</button>
                         <p id="password-message" style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--muted);"></p>
                     </form>
-                </div>
-
-                <!-- Preferences -->
-                <div class="card" style="grid-column: 1 / -1;">
-                    <h3>Notification Preferences</h3>
-                    <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-                            <input type="checkbox" id="pref-updates" checked style="cursor: pointer;" />
-                            <span>Email me application status updates</span>
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-                            <input type="checkbox" id="pref-messages" checked style="cursor: pointer;" />
-                            <span>Email me new messages from consultants</span>
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-                            <input type="checkbox" id="pref-news" checked style="cursor: pointer;" />
-                            <span>Email me news and funding opportunities</span>
-                        </label>
-                        <button type="button" class="button button-primary" onclick="savePreferences()" style="align-self: flex-start; margin-top: 1rem;">Save Preferences</button>
-                        <p id="pref-message" style="font-size: 0.9rem; color: var(--muted);"></p>
-                    </div>
                 </div>
 
                 <!-- Danger Zone: Delete Account -->
@@ -350,9 +341,11 @@
       });
 
       async function loadAccountSettings(profile) {
-        document.getElementById('settings-name').textContent = profile.clientName || profile.fullName || 'Unknown Client';
-        document.getElementById('settings-email').textContent = profile.email || 'not.provided@example.com';
-        document.getElementById('settings-business').textContent = profile.business || 'Not specified';
+        document.getElementById('edit-name').value = profile.clientName || profile.fullName || '';
+        document.getElementById('edit-email').value = profile.email || '';
+        document.getElementById('edit-email').dataset.originalEmail = profile.email || '';
+        document.getElementById('edit-business').value = profile.business || '';
+        document.getElementById('edit-phone').value = profile.phone || '';
 
         let createdAt = profile.createdAt;
         if (createdAt && typeof createdAt.toDate === 'function') {
@@ -361,9 +354,69 @@
         if (!createdAt) {
           createdAt = Date.now();
         }
-
         document.getElementById('settings-created').textContent = new Date(createdAt).toLocaleDateString();
       }
+
+      document.getElementById('edit-email').addEventListener('input', function () {
+        const changed = this.value.trim() !== (this.dataset.originalEmail || '');
+        document.getElementById('email-change-note').style.display = changed ? 'block' : 'none';
+        document.getElementById('email-password-field').style.display = changed ? 'block' : 'none';
+      });
+
+      document.getElementById('profile-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msgEl = document.getElementById('profile-message');
+        const newName = document.getElementById('edit-name').value.trim();
+        const newBusiness = document.getElementById('edit-business').value.trim();
+        const newPhone = document.getElementById('edit-phone').value.trim();
+        const newEmail = document.getElementById('edit-email').value.trim();
+        const originalEmail = document.getElementById('edit-email').dataset.originalEmail || '';
+        const emailChanged = newEmail.length > 0 && newEmail !== originalEmail;
+
+        msgEl.textContent = 'Saving...';
+        msgEl.style.color = 'var(--muted)';
+
+        try {
+          if (emailChanged) {
+            const currentPwd = document.getElementById('edit-email-password').value;
+            if (!currentPwd) {
+              msgEl.textContent = 'Please enter your current password to change your email.';
+              msgEl.style.color = '#dc2626';
+              return;
+            }
+            const user = firebase.auth().currentUser;
+            const credential = firebase.auth.EmailAuthProvider.credential(originalEmail, currentPwd);
+            await user.reauthenticateWithCredential(credential);
+            await user.updateEmail(newEmail);
+          }
+
+          const updates = {
+            clientName: newName || currentProfile.clientName || '',
+            fullName: newName || currentProfile.fullName || '',
+            business: newBusiness,
+            phone: newPhone,
+          };
+          if (emailChanged) updates.email = newEmail;
+
+          await firebase.firestore().collection('clients').doc(currentUid).update(updates);
+          Object.assign(currentProfile, updates);
+          document.getElementById('user-name').textContent = newName || currentProfile.clientName || 'Client';
+
+          if (emailChanged) {
+            document.getElementById('edit-email').dataset.originalEmail = newEmail;
+            document.getElementById('email-change-note').style.display = 'none';
+            document.getElementById('email-password-field').style.display = 'none';
+            document.getElementById('edit-email-password').value = '';
+          }
+
+          msgEl.textContent = 'Profile updated successfully!';
+          msgEl.style.color = '#16a34a';
+          setTimeout(() => { msgEl.textContent = ''; }, 3000);
+        } catch (err) {
+          msgEl.textContent = 'Could not save changes: ' + err.message;
+          msgEl.style.color = '#dc2626';
+        }
+      });
 
       document.getElementById('password-form').addEventListener('submit', async (e) => {
         e.preventDefault();
