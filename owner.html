@@ -104,6 +104,10 @@
                     <!-- List -->
                     <div style="border-right: 1px solid var(--border); overflow-y: auto; background: #fafafa;">
                         <h4 style="padding: 1rem; border-bottom: 1px solid var(--border); margin: 0; position: sticky; top: 0; background: #fafafa;">Clients</h4>
+                        <div style="padding: 0.75rem; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 40px; z-index: 1;">
+                            <input id="client-search-input" type="text" placeholder="Search name or email" style="width:100%; padding:0.5rem; border:1px solid var(--border); border-radius:6px;" />
+                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;">Showing clients with active threads; search to start one.</div>
+                        </div>
                         <div id="msg-client-list">
                             <!-- Populated by JS -->
                         </div>
@@ -218,6 +222,13 @@
           const list = document.getElementById('msg-client-list');
           list.innerHTML = '';
 
+          const searchInput = document.getElementById('client-search-input');
+          if (searchInput && !searchInput.dataset.bound) {
+              searchInput.addEventListener('input', () => loadMessageClients());
+              searchInput.dataset.bound = '1';
+          }
+          const searchTerm = searchInput?.value?.trim().toLowerCase() || '';
+
           // Get registered clients from Firestore
           const clientsSnapshot = await firebase.firestore().collection('clients').get();
           const clients = [];
@@ -237,12 +248,31 @@
           }
 
           const allMsgs = messagesResp.messages;
+          const threadClientIds = new Set();
+          allMsgs.forEach(m => {
+              if (m.senderId === 'admin' && m.recipientId) threadClientIds.add(m.recipientId);
+              if (m.recipientId === 'admin' && m.senderId) threadClientIds.add(m.senderId);
+          });
 
-          clients.forEach(client => {
+          const filteredClients = clients.filter(client => {
+              const isThread = threadClientIds.has(client.id);
+              if (!searchTerm) return isThread;
+
+              const fullText = `${client.clientName || ''} ${client.fullName || ''} ${client.email || ''}`.toLowerCase();
+              return fullText.includes(searchTerm);
+          });
+
+          if (filteredClients.length === 0) {
+              list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">${searchTerm ? 'No clients match this search.' : 'No clients with message history. Use search to start a thread.'}</div>`;
+              return;
+          }
+
+          filteredClients.forEach(client => {
+              const hasThread = threadClientIds.has(client.id);
               const unreadCount = allMsgs.filter(m => m.senderId === client.id && m.recipientId === 'admin' && !m.read).length;
 
               const div = document.createElement('div');
-              div.setAttribute('data-client-id', client.id); // Track client ID for badge updates
+              div.setAttribute('data-client-id', client.id);
               div.style.padding = '0.75rem 1rem';
               div.style.cursor = 'pointer';
               div.style.borderBottom = '1px solid var(--border)';
@@ -250,11 +280,32 @@
               div.style.display = 'flex';
               div.style.justifyContent = 'space-between';
               div.style.alignItems = 'center';
-              div.textContent = client.clientName || client.fullName || client.email;
 
-              if (unreadCount > 0) {
-                  div.innerHTML += `<span class="badge">${unreadCount}</span>`;
+              const leftBox = document.createElement('span');
+              leftBox.textContent = client.clientName || client.fullName || client.email;
+              if (!hasThread) {
+                const label = document.createElement('span');
+                label.textContent = ' (start chat)';
+                label.style.color = '#555';
+                leftBox.appendChild(label);
               }
+
+              const rightBox = document.createElement('span');
+              if (unreadCount > 0) {
+                  const badge = document.createElement('span');
+                  badge.className = 'badge';
+                  badge.textContent = unreadCount;
+                  rightBox.appendChild(badge);
+              }
+
+              const status = document.createElement('span');
+              status.textContent = hasThread ? '' : '• new';
+              status.style.marginLeft = '0.5rem';
+              status.style.color = '#999';
+              if (!hasThread) rightBox.appendChild(status);
+
+              div.appendChild(leftBox);
+              div.appendChild(rightBox);
 
               div.onclick = () => openAdminChat(client.id, client.clientName || client.fullName || client.email);
 
