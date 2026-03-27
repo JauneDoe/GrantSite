@@ -24,10 +24,8 @@ async function signUpClient(email, password, clientData) {
       ...clientData
     });
 
-    console.log("Client signed up and profile saved:", user.uid);
     return { success: true, user: user, uid: user.uid };
   } catch (error) {
-    console.error("Signup error:", error);
     return { success: false, error: error.message || String(error) };
   }
 }
@@ -40,7 +38,6 @@ async function deleteCurrentUser() {
     await firebase.auth().currentUser.delete();
     return { success: true };
   } catch (error) {
-    console.error("Delete user error:", error.message);
     return { success: false, error: error.message };
   }
 }
@@ -66,24 +63,16 @@ async function signInUser(email, password) {
       profile = {
         email: user.email,
         clientName: user.email,
-        role: user.email === "owner@2xclusive.com" ? "owner" : "client",
+        role: "client",
         createdAt: new Date(),
       };
       await userDocRef.set(profile, { merge: true });
     }
 
-    // Auto-upgrade legacy owner missing the role
-    if (user.email === "owner@2xclusive.com" && profile.role !== "owner") {
-        profile.role = "owner";
-        await userDocRef.set({ role: "owner" }, { merge: true });
-    }
-
     const role = profile.role || "client";
 
-    console.log("User signed in:", user.uid, "role:", role, "profile:", profile);
     return { success: true, user: user, uid: user.uid, role: role, profile: profile };
   } catch (error) {
-    console.error("Sign in error:", error);
     return { success: false, error: error.message || String(error) };
   }
 }
@@ -110,7 +99,6 @@ async function signOutUser() {
     await firebase.auth().signOut();
     return { success: true };
   } catch (error) {
-    console.error("Sign out error:", error.message);
     return { success: false, error: error.message };
   }
 }
@@ -139,7 +127,6 @@ async function resetPassword(email) {
     await firebase.auth().sendPasswordResetEmail(email);
     return { success: true };
   } catch (error) {
-    console.error("Password reset error:", error.message);
     return { success: false, error: error.message };
   }
 }
@@ -157,7 +144,6 @@ async function updateUserProfile(displayName) {
     }
     return { success: false, error: "No user signed in" };
   } catch (error) {
-    console.error("Profile update error:", error.message);
     return { success: false, error: error.message };
   }
 }

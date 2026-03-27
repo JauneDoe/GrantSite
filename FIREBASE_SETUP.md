@@ -72,38 +72,56 @@ const firebaseConfig = {
 
 ## Step 6: Set Firestore Security Rules
 
-Replace the default rules with these for development:
+Replace the default rules with these **PRODUCTION RULES**:
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow authenticated users to read/write their own documents
+    // Clients can only read/write their own profile
+    // and cannot modify the role field
     match /clients/{userId} {
-      allow read, write: if request.auth.uid == userId;
+      allow read: if request.auth.uid == userId;
+      allow update: if request.auth.uid == userId && 
+                       request.resource.data.role == resource.data.role;
+      allow create: if false; // Only via authentication signup
+      allow delete: if false; // Prevent client self-deletion
     }
     
-    // Allow clients to read/write their grants
+    // Clients can only read their own grants
+    // Cannot create/update/delete (admin-only)
     match /grants/{grantId} {
-      allow read, write: if request.auth.uid == resource.data.clientId;
+      allow read: if request.auth.uid == resource.data.clientId;
+      allow create: if false; // Admin-only
+      allow update: if false; // Admin-only
+      allow delete: if false; // Admin-only
     }
     
-    // Allow messaging
+    // Messaging: Users can only read/create their own messages
     match /messages/{messageId} {
-      allow read: if request.auth.uid == resource.data.recipientId || request.auth.uid == resource.data.senderId;
-      allow create: if request.auth != null;
+      allow read: if request.auth.uid == resource.data.recipientId || 
+                     request.auth.uid == resource.data.senderId;
+      allow create: if request.auth.uid == request.resource.data.senderId;
+      allow update: if false; // Messages are immutable
+      allow delete: if false; // Messages are immutable
     }
     
-    // Allow admins full access to site-content
+    // Content is read-only for all authenticated users
     match /site-content/{document=**} {
-      allow read: if true; // Anyone can read site content
-      allow write: if request.auth != null; // Only authenticated users can write
+      allow read: if request.auth != null;
+      allow write: if false; // Content managed by backend admin only
     }
   }
 }
 ```
 
-**Important:** Update these rules with proper security rules before going to production.
+**Important Security Notes:**
+- These rules enforce role-based access control at the database level
+- Clients cannot modify their own role field
+- Grants and messages are immutable once created
+- Only authenticated users can access the site
+- Admin access is controlled via the `role` field in the clients collection
+- Test these rules thoroughly before deployment
 
 ## Step 7: Enable Cloud Storage (Optional)
 

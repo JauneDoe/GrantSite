@@ -27,7 +27,5 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-console.log("Firebase initialized", { projectId: firebaseConfig.projectId, auth: !!auth, db: !!db });
-
 // Export for use in other files (if using modules)
 const firebaseServices = { auth, db, storage };

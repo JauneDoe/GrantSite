@@ -281,13 +281,7 @@
 
           const profileDoc = await firebase.firestore().collection('clients').doc(currentUid).get();
           currentProfile = profileDoc.exists ? profileDoc.data() : { clientName: user.email, fullName: '', email: user.email };
-          const isOwnerEmail = (user.email || '').toLowerCase() === 'owner@2xclusive.com';
-          const role = currentProfile.role || (isOwnerEmail ? 'owner' : 'client');
-
-          if (isOwnerEmail && currentProfile.role !== 'owner') {
-            await firebase.firestore().collection('clients').doc(currentUid).set({ role: 'owner' }, { merge: true });
-            currentProfile.role = 'owner';
-          }
+          const role = currentProfile.role || 'client';
 
           if (role !== 'client') {
             window.location.href = role === 'owner' ? 'owner.html' : 'login.html';
@@ -520,15 +514,12 @@
 
       async function clientLogout(event) {
         event.preventDefault();
-        console.log('Starting logout...');
         const result = await signOutUser();
         if (!result.success) {
-          console.error('Sign out failed:', result.error);
           alert('Sign out failed: ' + result.error);
           return;
         }
-        console.log('Sign out successful, auth listener should redirect');
-        // Don't redirect here, let the auth state listener handle it
+        // Sign out in progress, auth listener will handle redirect
       }
 
       async function deleteClientAccount() {

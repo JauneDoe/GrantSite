@@ -141,7 +141,7 @@
           // Delete the Firebase account since terms were rejected
           const deleteResult = await deleteCurrentUser();
           if (!deleteResult.success) {
-              console.error("Failed to delete account:", deleteResult.error);
+              // Account deletion error handled internally
           }
 
           alert("Account creation cancelled. You have been returned to the homepage.");

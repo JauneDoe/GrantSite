@@ -659,6 +659,9 @@
       }
 
       // CRM LOGIC: LOAD REQUESTS
+      // NOTE: This uses localStorage for CRM data storage. For production,
+      // consider migrating this to Firestore for multi-device sync capability.
+      // Currently, CRM data is stored locally and not synced across devices.
       function loadCRM() {
           const tableBody = document.getElementById('crm-table-body');
           const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
@@ -751,7 +754,7 @@
 
               document.getElementById('settings-thread-count').textContent = threadClientIds.size;
           } catch (error) {
-              console.error('Failed to load admin settings:', error);
+              // Silently handle settings load error
           }
       }
 
@@ -782,19 +785,9 @@
           const userDoc = await firebase.firestore().collection('clients').doc(user.uid).get();
           const profile = userDoc.exists ? userDoc.data() : null;
           currentOwnerProfile = profile;
-                    const isOwnerEmail = (user.email || '').toLowerCase() === 'owner@2xclusive.com';
-                    const role = profile?.role || (isOwnerEmail ? 'owner' : 'client');
-
-                    if (isOwnerEmail && profile?.role !== 'owner') {
-                        await firebase.firestore().collection('clients').doc(user.uid).set({ role: 'owner' }, { merge: true });
-                        if (!currentOwnerProfile) {
-                            currentOwnerProfile = {};
-                        }
-                        currentOwnerProfile.role = 'owner';
-                    }
+          const role = profile?.role || 'client';
 
           if (role !== "owner") {
-            console.error("User is not an owner, redirecting to client dashboard");
             window.location.href = 'client-dashboard.html';
             return;
           }
