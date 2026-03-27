@@ -105,11 +105,11 @@
                     <div style="border-right: 1px solid var(--border); overflow-y: auto; background: #fafafa;">
                         <h4 style="padding: 1rem; border-bottom: 1px solid var(--border); margin: 0; position: sticky; top: 0; background: #fafafa;">Clients</h4>
                         <div style="padding: 0.75rem; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 40px; z-index: 1;">
-                            <input id="client-search-input" type="text" placeholder="Search name or email" style="width:100%; padding:0.5rem; border:1px solid var(--border); border-radius:6px;" />
-                            <select id="client-select" style="margin-top:0.5rem; width:100%; padding:0.45rem; border:1px solid var(--border); border-radius:6px;">
-                                <option value="">Select or search client</option>
-                            </select>
-                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;"></div>
+                            <div style="position:relative;">
+                                <input id="client-search-input" type="text" autocomplete="off" placeholder="Search or select client" style="width:100%; padding:0.5rem; border:1px solid var(--border); border-radius:6px;" />
+                                <div id="client-autocomplete-list" style="position:absolute; left:0; right:0; top:100%; background:#fff; border:1px solid var(--border); border-radius:0 0 6px 6px; box-shadow:0 2px 8px rgba(0,0,0,0.07); z-index:10; display:none;"></div>
+                            </div>
+                            <div style="margin-top:0.5rem; color:var(--muted); font-size:0.8rem;">Type to search and select a client. Only clients with threads are shown below by default.</div>
                         </div>
                         <div id="msg-client-list">
                             <!-- Populated by JS -->
@@ -280,25 +280,12 @@
           }
 
           const filteredClients = clients.filter(client => {
-              const fullText = `${client.clientName || ''} ${client.fullName || ''} ${client.email || ''}`.toLowerCase();
-              // If typing, include any matching client. Otherwise limit to active threads.
-              if (searchTerm) {
-                  return fullText.includes(searchTerm);
-              }
-              return threadClientIds.has(client.id);
-          });
+              const isThread = threadClientIds.has(client.id);
+              if (!searchTerm) return isThread;
 
-          const clientSelect = document.getElementById('client-select');
-          if (clientSelect) {
-            clientSelect.innerHTML = '<option value="">Select or search client</option>';
-            filteredClients.forEach(client => {
-                const name = client.clientName || client.fullName || client.email || 'Unknown';
-                const opt = document.createElement('option');
-                opt.value = client.id;
-                opt.textContent = `${name} (${client.email || 'no-email'})`;
-                clientSelect.appendChild(opt);
-            });
-          }
+              const fullText = `${client.clientName || ''} ${client.fullName || ''} ${client.email || ''}`.toLowerCase();
+              return fullText.includes(searchTerm);
+          });
 
           if (filteredClients.length === 0) {
               list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">${searchTerm ? 'No clients match this search.' : 'No clients with message history. Use search to start a thread.'}</div>`;
