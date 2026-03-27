@@ -138,10 +138,6 @@
              </div>
              <div id="client-typing-indicator" class="typing-indicator">Consultant is typing...</div>
              <div style="padding: 1rem; border-top: 1px solid var(--border); background: #fff; display: flex; gap: 0.5rem; align-items: center;">
-                 <button class="button button-ghost" style="padding: 0.5rem 0.75rem;" onclick="document.getElementById('client-file-input').click()" title="Upload File">
-                    📎
-                 </button>
-                 <input type="file" id="client-file-input" style="display: none;" onchange="handleClientFileUpload(this)">
                  <input id="client-chat-input" type="text" class="chat-input" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') sendClientMessage()">
                  <button class="button button-primary" onclick="sendClientMessage()">Send</button>
              </div>

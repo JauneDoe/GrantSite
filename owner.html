@@ -126,10 +126,6 @@
                          </div>
                          <div id="admin-typing-indicator" class="typing-indicator">Client is typing...</div>
                          <div style="padding: 1rem; border-top: 1px solid var(--border); background: #fff; display: flex; gap: 0.5rem; align-items: center;">
-                             <button id="admin-file-btn" class="button button-ghost" style="padding: 0.5rem 0.75rem;" disabled onclick="document.getElementById('admin-file-input').click()" title="Upload File">
-                                📎
-                             </button>
-                             <input type="file" id="admin-file-input" style="display: none;" onchange="handleAdminFileUpload(this)">
                              <input id="admin-chat-input" type="text" class="chat-input" disabled placeholder="Select a client first..." onkeydown="if(event.key === 'Enter') sendAdminMessage()">
                              <button id="admin-chat-send" class="button button-primary" disabled onclick="sendAdminMessage()">Send</button>
                          </div>
@@ -452,7 +448,6 @@
           document.getElementById('chat-header').textContent = "Chat with " + clientName;
           document.getElementById('admin-chat-input').disabled = false;
           document.getElementById('admin-chat-send').disabled = false;
-          document.getElementById('admin-file-btn').disabled = false;
 
           await markConversationRead(clientId);
           loadMessageClients(); // Re-render list to clear badge
@@ -497,7 +492,6 @@
           document.getElementById('delete-chat-thread').style.display = 'none';
           document.getElementById('admin-chat-input').disabled = true;
           document.getElementById('admin-chat-send').disabled = true;
-          document.getElementById('admin-file-btn').disabled = true;
           activeChatClientId = null;
           activeChatClientName = null;
 
@@ -657,16 +651,6 @@
           input.value = '';
           localStorage.setItem('typing_' + activeChatClientId + '_admin', 'false'); // Clear typing flag
           // Real-time listener will update chat automatically
-      }
-
-      async function handleAdminFileUpload(input) {
-          if (input.files && input.files[0] && activeChatClientId) {
-                const file = input.files[0];
-                const msg = `Shared a file: <br><a href="#" style="text-decoration: underline;">📄 ${file.name}</a>`;
-                await sendMessage('admin', activeChatClientId, msg);
-                input.value = '';
-                // Real-time listener will update chat automatically
-          }
       }
 
       // keep legacy storage events in place for compatibility with old code paths only
