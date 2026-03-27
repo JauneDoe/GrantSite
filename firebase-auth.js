@@ -141,3 +141,11 @@ async function updateUserProfile(displayName) {
     return { success: false, error: error.message };
   }
 }
+// Export all functions to global scope
+window.signUpClient = signUpClient;
+window.signInUser = signInUser;
+window.signOutUser = signOutUser;
+window.checkAuth = checkAuth;
+window.resetPassword = resetPassword;
+window.updateUserProfile = updateUserProfile;
+window.deleteCurrentUser = deleteCurrentUser;
