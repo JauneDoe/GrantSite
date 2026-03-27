@@ -283,7 +283,17 @@
       async function renderChatMessages() {
           if(!activeChatClientId) return;
 
-          const response = await getConversation('admin', activeChatClientId);
+          let response;
+          if (typeof getConversation === 'function') {
+            response = await getConversation('admin', activeChatClientId);
+          } else {
+            const allMsgs = await getMessages('admin');
+            if (!allMsgs.success) return;
+            const convo = allMsgs.messages.filter((m) => (m.senderId === 'admin' && m.recipientId === activeChatClientId) || (m.senderId === activeChatClientId && m.recipientId === 'admin'));
+            convo.sort((a,b) => (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)) - (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)));
+            response = { success: true, messages: convo };
+          }
+
           if (!response.success) return;
 
           const window = document.getElementById('chat-window');
@@ -308,7 +318,16 @@
       }
 
       async function markConversationRead(clientId) {
-          const response = await getConversation('admin', clientId);
+          let response;
+          if (typeof getConversation === 'function') {
+            response = await getConversation('admin', clientId);
+          } else {
+            const allMsgs = await getMessages('admin');
+            if (!allMsgs.success) return;
+            const convo = allMsgs.messages.filter((m) => (m.senderId === 'admin' && m.recipientId === clientId) || (m.senderId === clientId && m.recipientId === 'admin'));
+            response = { success: true, messages: convo };
+          }
+
           if (!response.success) return;
 
           for (const msg of response.messages) {
