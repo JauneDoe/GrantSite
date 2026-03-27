@@ -199,6 +199,12 @@ async function getConversation(userId, otherId) {
   }
 }
 
+// Ensure function is globally available if 3rd-party environment scope is limited
+window.getConversation = getConversation;
+window.getMessages = getMessages;
+window.sendMessage = sendMessage;
+window.markMessageAsRead = markMessageAsRead;
+
 /**
  * Mark a message as read
  * @param {string} messageId - Message document ID

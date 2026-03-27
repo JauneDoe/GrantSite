@@ -416,10 +416,25 @@
       }
 
       async function renderClientChat() {
-        const response = await getConversation(currentUid, 'admin');
+        let response;
+
+        if (typeof getConversation === 'function') {
+          response = await getConversation(currentUid, 'admin');
+        } else {
+          const allMessages = await getMessages(currentUid);
+          if (!allMessages.success) {
+            return;
+          }
+
+          const convo = allMessages.messages.filter((m) => (m.senderId === currentUid && m.recipientId === 'admin') || (m.senderId === 'admin' && m.recipientId === currentUid));
+          convo.sort((a,b) => (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)) - (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)));
+          response = { success: true, messages: convo };
+        }
+
         if (!response.success) {
           return;
         }
+
         const windowEl = document.getElementById('client-chat-window');
         windowEl.innerHTML = '';
 
