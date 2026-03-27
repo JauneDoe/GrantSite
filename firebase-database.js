@@ -135,23 +135,66 @@ async function sendMessage(senderId, recipientId, message) {
  */
 async function getMessages(userId, unreadOnly = false) {
   try {
-    let query = firebase.firestore().collection("messages")
-      .where("recipientId", "==", userId);
+    // Load inbound and outbound messages for this user
+    const [inboundSnap, outboundSnap] = await Promise.all([
+      firebase.firestore().collection("messages")
+        .where("recipientId", "==", userId)
+        .get(),
+      firebase.firestore().collection("messages")
+        .where("senderId", "==", userId)
+        .get()
+    ]);
 
-    if (unreadOnly) {
-      query = query.where("read", "==", false);
-    }
-
-    const snapshot = await query.orderBy("timestamp", "desc").get();
     const messages = [];
 
-    snapshot.forEach((doc) => {
-      messages.push({ id: doc.id, ...doc.data() });
+    inboundSnap.forEach((doc) => {
+      if (!unreadOnly || doc.data().read === false) {
+        messages.push({ id: doc.id, ...doc.data() });
+      }
     });
+    if (!unreadOnly) {
+      outboundSnap.forEach((doc) => {
+        messages.push({ id: doc.id, ...doc.data() });
+      });
+    }
+
+    messages.sort((a,b) => (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)) - (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)));
 
     return { success: true, messages: messages };
   } catch (error) {
     console.error("Get messages error:", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Get conversation between two users
+ * @param {string} userId
+ * @param {string} otherId
+ * @returns {Promise<Object>} messages sorted by timestamp
+ */
+async function getConversation(userId, otherId) {
+  try {
+    const [sentSnap, receivedSnap] = await Promise.all([
+      firebase.firestore().collection("messages")
+        .where("senderId", "==", userId)
+        .where("recipientId", "==", otherId)
+        .get(),
+      firebase.firestore().collection("messages")
+        .where("senderId", "==", otherId)
+        .where("recipientId", "==", userId)
+        .get()
+    ]);
+
+    const messages = [];
+    sentSnap.forEach((doc) => messages.push({ id: doc.id, ...doc.data() }));
+    receivedSnap.forEach((doc) => messages.push({ id: doc.id, ...doc.data() }));
+
+    messages.sort((a,b) => (b.timestamp?.toDate?.() || new Date(b.timestamp || 0)) - (a.timestamp?.toDate?.() || new Date(a.timestamp || 0)));
+
+    return { success: true, messages };
+  } catch (error) {
+    console.error("Get conversation error:", error.message);
     return { success: false, error: error.message };
   }
 }

@@ -209,24 +209,36 @@
       }
 
       // MESSAGING LOGIC
-      let activeChatClient = null;
+      let activeChatClientId = null;
+      let activeChatClientName = null;
 
-      function loadMessageClients() {
+      async function loadMessageClients() {
           const list = document.getElementById('msg-client-list');
           list.innerHTML = '';
-          
-          // Get unique clients from requests
-          const requests = JSON.parse(localStorage.getItem("clientRequests") || "[]");
-          const clients = [...new Set(requests.map(r => r.clientName))];
-          
+
+          // Get registered clients from Firestore
+          const clientsSnapshot = await firebase.firestore().collection('clients').get();
+          const clients = [];
+          clientsSnapshot.forEach((doc) => {
+              clients.push({ id: doc.id, ...doc.data() });
+          });
+
           if (clients.length === 0) {
               list.innerHTML = `<div style="padding: 1rem; color: var(--muted); font-size: 0.9rem;">No clients found.</div>`;
               return;
           }
 
-          const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
-          
+          const messagesResp = await getMessages('admin', false);
+          if (!messagesResp.success) {
+            list.innerHTML = `<div style="padding: 1rem; color: #dc2626; font-size: 0.9rem;">Could not load messages: ${messagesResp.error}</div>`;
+            return;
+          }
+
+          const allMsgs = messagesResp.messages;
+
           clients.forEach(client => {
+              const unreadCount = allMsgs.filter(m => m.senderId === client.id && m.recipientId === 'admin' && !m.read).length;
+
               const div = document.createElement('div');
               div.style.padding = '0.75rem 1rem';
               div.style.cursor = 'pointer';
@@ -235,70 +247,75 @@
               div.style.display = 'flex';
               div.style.justifyContent = 'space-between';
               div.style.alignItems = 'center';
-              div.textContent = client;
-              
-              // Unread Badge
-              const clientMsgs = allMsgs[client] || [];
-              const unreadCount = clientMsgs.filter(m => m.sender === 'Client' && !m.read).length;
-              if(unreadCount > 0) {
+              div.textContent = client.clientName || client.fullName || client.email;
+
+              if (unreadCount > 0) {
                   div.innerHTML += `<span class="badge">${unreadCount}</span>`;
               }
 
-              div.onclick = () => openAdminChat(client);
-              
-              if(activeChatClient === client) {
+              div.onclick = () => openAdminChat(client.id, client.clientName || client.fullName || client.email);
+
+              if (activeChatClientId === client.id) {
                   div.style.background = '#eef2ff';
                   div.style.fontWeight = '600';
               } else {
                   div.onmouseover = () => div.style.background = '#eee';
                   div.onmouseout = () => div.style.background = 'transparent';
               }
-              
+
               list.appendChild(div);
           });
       }
 
-      function openAdminChat(clientName) {
-          activeChatClient = clientName;
+      async function openAdminChat(clientId, clientName) {
+          activeChatClientId = clientId;
+          activeChatClientName = clientName;
           document.getElementById('chat-header').textContent = "Chat with " + clientName;
           document.getElementById('admin-chat-input').disabled = false;
           document.getElementById('admin-chat-send').disabled = false;
           document.getElementById('admin-file-btn').disabled = false;
-          
-          // Mark as read
-          const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
-          if(allMsgs[clientName]) {
-             allMsgs[clientName].forEach(m => {
-                 if(m.sender === 'Client') m.read = true;
-             });
-             localStorage.setItem("siteMessages", JSON.stringify(allMsgs));
-          }
 
+          await markConversationRead(clientId);
           loadMessageClients(); // Re-render list to clear badge
-          renderChatMessages();
+          await renderChatMessages();
       }
 
-      function renderChatMessages() {
-          if(!activeChatClient) return;
-          
+      async function renderChatMessages() {
+          if(!activeChatClientId) return;
+
+          const response = await getConversation('admin', activeChatClientId);
+          if (!response.success) return;
+
           const window = document.getElementById('chat-window');
-          const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
-          const msgs = allMsgs[activeChatClient] || [];
-          
+          const msgs = response.messages || [];
+
           window.innerHTML = '';
           if(msgs.length === 0) {
               window.innerHTML = `<p style="color:var(--muted); text-align: center; margin-top: 2rem;">No messages yet. Say hello!</p>`;
           }
-          
+
           msgs.forEach(m => {
-              const isMe = m.sender === 'Admin';
+              const isMe = m.senderId === 'admin';
               const div = document.createElement('div');
               div.className = `message ${isMe ? 'sent' : 'received'}`;
-              div.innerHTML = `${m.text} <span class="message-meta">${m.time}</span>`;
+              const senderLabel = isMe ? '<strong style="font-size: 0.75rem; display: block; margin-bottom: 2px;">You</strong>' : `<strong style="font-size: 0.75rem; display: block; margin-bottom: 2px;">${activeChatClientName}</strong>`;
+              const time = new Date(m.timestamp?.toDate?.() ?? m.timestamp).toLocaleTimeString();
+              div.innerHTML = `${senderLabel}${m.message} <span class="message-meta">${time}</span>`;
               window.appendChild(div);
           });
-          
-           window.scrollTop = window.scrollHeight;
+
+          window.scrollTop = window.scrollHeight;
+      }
+
+      async function markConversationRead(clientId) {
+          const response = await getConversation('admin', clientId);
+          if (!response.success) return;
+
+          for (const msg of response.messages) {
+              if (msg.recipientId === 'admin' && msg.senderId === clientId && !msg.read) {
+                  await markMessageAsRead(msg.id);
+              }
+          }
       }
 
       // Typing Logic
@@ -306,27 +323,26 @@
       const adminInput = document.getElementById('admin-chat-input');
       
       adminInput.addEventListener('input', () => {
-          if(!activeChatClient) return;
-          localStorage.setItem('typing_' + activeChatClient + '_admin', 'true');
+          if(!activeChatClientId) return;
+          localStorage.setItem('typing_' + activeChatClientId + '_admin', 'true');
           clearTimeout(typingTimeout);
           typingTimeout = setTimeout(() => {
-             localStorage.setItem('typing_' + activeChatClient + '_admin', 'false');
+             localStorage.setItem('typing_' + activeChatClientId + '_admin', 'false');
           }, 1500);
       });
       
       // Listen for client typing
       window.addEventListener('storage', (e) => {
-          if(!activeChatClient) return;
+          if(!activeChatClientId) return;
           
           // Refresh messages if storage changed (sync chat)
           if(e.key === 'siteMessages') {
-             // Only update if we're not the one who wrote it (avoid double render glitch, though renderChat is safe)
              renderChatMessages();
              loadMessageClients(); // Update badges for others
           }
 
           // Typing indicator
-          if (e.key === 'typing_' + activeChatClient + '_client') {
+          if (e.key === 'typing_' + activeChatClientId + '_client') {
               const indicator = document.getElementById('admin-typing-indicator');
               if(e.newValue === 'true') indicator.classList.add('active');
               else indicator.classList.remove('active');
@@ -334,66 +350,57 @@
       });
       
       // Polling for same-tab demo purposes 
-      setInterval(() => {
-         updateAdminGlobalBadge(); // Always check global
+      setInterval(async () => {
+         await updateAdminGlobalBadge(); // Always check global
          
-         if(!activeChatClient) return;
-         if(localStorage.getItem('typing_' + activeChatClient + '_client') === 'true') {
+         if(!activeChatClientId) return;
+         if(localStorage.getItem('typing_' + activeChatClientId + '_client') === 'true') {
              document.getElementById('admin-typing-indicator').classList.add('active');
          } else {
              document.getElementById('admin-typing-indicator').classList.remove('active');
          }
-         // Auto-reload badges/messages
-         const currentMsgs = localStorage.getItem("siteMessages");
-         if (currentMsgs !== window.lastKnownMsgs) {
-             window.lastKnownMsgs = currentMsgs;
-             loadMessageClients();
-             renderChatMessages();
-         }
+
+         await loadMessageClients();
+         await renderChatMessages();
       }, 1000);
 
-      function updateAdminGlobalBadge() {
-          const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
+      async function updateAdminGlobalBadge() {
+          const response = await getMessages('admin', true);
           let totalUnread = 0;
-          
-          Object.values(allMsgs).forEach(clientMsgs => {
-              totalUnread += clientMsgs.filter(m => m.sender === 'Client' && !m.read).length;
-          });
-          
+          if (response.success) {
+              totalUnread = response.messages.length;
+          }
           const link = document.getElementById('admin-nav-msgs');
           link.innerHTML = `Messages ${totalUnread > 0 ? `<span class="badge" style="display: inline-block; margin-left: 0.5rem;">${totalUnread}</span>` : ''}`;
       }
 
-      function sendAdminMessage() {
-          if(!activeChatClient) return;
+      async function sendAdminMessage() {
+          if(!activeChatClientId) return;
           const input = document.getElementById('admin-chat-input');
           const text = input.value.trim();
           if(!text) return;
-          
-          saveAdminMsg(text);
+
+          await sendMessage('admin', activeChatClientId, text);
           input.value = '';
-          localStorage.setItem('typing_' + activeChatClient + '_admin', 'false'); // Stop typing immediately
+          localStorage.setItem('typing_' + activeChatClientId + '_admin', 'false'); // Clear typing flag
+          await renderChatMessages();
+          await loadMessageClients();
       }
 
-      function handleAdminFileUpload(input) {
-          if (input.files && input.files[0] && activeChatClient) {
+      async function handleAdminFileUpload(input) {
+          if (input.files && input.files[0] && activeChatClientId) {
                 const file = input.files[0];
                 const msg = `Shared a file: <br><a href="#" style="text-decoration: underline;">📄 ${file.name}</a>`;
-                saveAdminMsg(msg);
+                await sendMessage('admin', activeChatClientId, msg);
                 input.value = '';
+                await renderChatMessages();
+                await loadMessageClients();
           }
       }
 
+      // keep legacy storage events in place for compatibility with old code paths only
       function saveAdminMsg(text) {
-          const allMsgs = JSON.parse(localStorage.getItem("siteMessages") || "{}");
-          if(!activeChatClient) return;
-          if(!allMsgs[activeChatClient]) allMsgs[activeChatClient] = [];
-          
-          const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          allMsgs[activeChatClient].push({ sender: 'Admin', text: text, time: now, read: false }); // Sent as unread
-          
-          localStorage.setItem("siteMessages", JSON.stringify(allMsgs));
-          renderChatMessages();
+          // no-op; replaced by sendMessage/Firestore
       }
 
       // CRM LOGIC: LOAD REQUESTS

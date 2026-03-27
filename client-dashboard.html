@@ -416,7 +416,7 @@
       }
 
       async function renderClientChat() {
-        const response = await getMessages(currentUid);
+        const response = await getConversation(currentUid, 'admin');
         if (!response.success) {
           return;
         }
